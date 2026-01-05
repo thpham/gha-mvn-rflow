@@ -55,7 +55,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- Spring Boot -->
-    <spring-boot.version>3.3.5</spring-boot.version>
+    <spring-boot.version>4.0.1</spring-boot.version>
 
     <!-- Testing -->
     <mockk.version>1.13.13</mockk.version>
