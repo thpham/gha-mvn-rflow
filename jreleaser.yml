@@ -10,7 +10,7 @@ project:
   website: https://github.com/thpham/gha-mvn-rflow
   license: Apache-2.0
   authors:
-    - Thanh Pham
+    - Thomas Pham
   tags:
     - kotlin
     - spring-boot
@@ -71,6 +71,27 @@ deploy:
         active: RELEASE
         url: https://maven.pkg.github.com/thpham/gha-mvn-rflow
         # Credentials via: JRELEASER_GITHUB_TOKEN
+
+# =============================================================================
+# SBOM (Software Bill of Materials) Generation
+# =============================================================================
+catalog:
+  sbom:
+    # CycloneDX SBOM generation (industry standard)
+    cyclonedx:
+      active: ALWAYS
+      # Include distribution artifacts in SBOM
+      distributions: true
+      # Include project files in SBOM
+      files: true
+      # Output formats
+      formats:
+        - JSON
+        - XML
+      # Archive all SBOMs together
+      pack:
+        enabled: true
+        name: '{{projectName}}-{{projectVersion}}-sbom'
 
 # =============================================================================
 # Files to include in release

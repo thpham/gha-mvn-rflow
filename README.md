@@ -7,9 +7,14 @@ A Kotlin Spring Boot multi-module project with automated release management usin
 - **Multi-module Maven project** with Kotlin and Spring Boot 3.3.x
 - **Automated releases** via Release Please (versioning, changelog)
 - **Artifact distribution** via JReleaser (Docker, GitHub Packages)
+- **SBOM generation** via CycloneDX (JSON and XML formats)
 - **Conventional commits** enforcement with commitlint
 - **Cherry-pick automation** for backporting fixes to release branches
 - **Preview deployments** for pull requests (on-demand via label)
+- **Automated dependency updates** via Dependabot
+- **Code quality analysis** via SonarQube (SonarCloud or self-hosted)
+- **Integration testing** support with Testcontainers
+- **API documentation** via OpenAPI/Swagger UI
 
 ## Prerequisites
 
@@ -250,6 +255,76 @@ When the application is running, API documentation is available at:
 
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/api-docs
+
+## Code Quality (SonarQube)
+
+This project supports code quality analysis with either SonarCloud or self-hosted SonarQube.
+
+### Setup
+
+1. **For SonarCloud:**
+   - Create a project at [sonarcloud.io](https://sonarcloud.io)
+   - Add `SONAR_TOKEN` secret to your GitHub repository
+
+2. **For Self-hosted SonarQube:**
+   - Add `SONAR_TOKEN` secret to your GitHub repository
+   - Add `SONAR_HOST_URL` secret with your SonarQube server URL
+
+### Run Locally
+
+```bash
+# Run analysis (requires SONAR_TOKEN environment variable)
+mvn verify sonar:sonar -Dsonar.token=$SONAR_TOKEN
+
+# For self-hosted SonarQube
+mvn verify sonar:sonar \
+  -Dsonar.token=$SONAR_TOKEN \
+  -Dsonar.host.url=https://your-sonarqube-server.com
+```
+
+## Integration Testing (Testcontainers)
+
+Testcontainers is pre-configured for integration testing with real dependencies.
+
+### Available Containers
+
+Add containers as needed in `modules/api/pom.xml`:
+
+```xml
+<!-- PostgreSQL -->
+<dependency>
+  <groupId>org.testcontainers</groupId>
+  <artifactId>postgresql</artifactId>
+  <scope>test</scope>
+</dependency>
+
+<!-- RabbitMQ -->
+<dependency>
+  <groupId>org.testcontainers</groupId>
+  <artifactId>rabbitmq</artifactId>
+  <scope>test</scope>
+</dependency>
+```
+
+### Example Test
+
+```kotlin
+@Testcontainers
+@SpringBootTest
+class DatabaseIntegrationTest {
+
+    companion object {
+        @Container
+        val postgres = PostgreSQLContainer("postgres:16-alpine")
+            .withDatabaseName("testdb")
+    }
+
+    @Test
+    fun `should connect to database`() {
+        assertThat(postgres.isRunning).isTrue()
+    }
+}
+```
 
 ## License
 
