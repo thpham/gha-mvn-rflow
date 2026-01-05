@@ -1,9 +1,11 @@
 # actionlint configuration
 # See: https://github.com/rhysd/actionlint/blob/main/docs/config.md
 
-# Self-hosted runner labels (add if using self-hosted runners)
+# GitHub-hosted ARM runners (not yet in actionlint's built-in list)
+# See: https://github.blog/changelog/2024-09-03-github-actions-arm64-linux-and-windows-runners-are-now-generally-available/
 self-hosted-runner:
-  labels: []
+  labels:
+    - ubuntu-24.04-arm
 
 # Configuration variables defined in repository settings
 # config-variables: []

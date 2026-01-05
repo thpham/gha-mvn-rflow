@@ -30,10 +30,8 @@ jobs:
           persist-credentials: false
 
       - name: Run actionlint
-        # v1.7.4
-        uses: rhysd/actionlint@5db9d9cde2f3deb5035dea3e45f0a9fff2f29448
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        # v1.7.10
+        uses: rhysd/actionlint@0933c147c9d6587653d45fdcb4c497c57a65f9af
 
   zizmor:
     name: zizmor (Security)
