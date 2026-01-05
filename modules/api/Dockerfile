@@ -1,6 +1,24 @@
-# Multi-stage Dockerfile for MyProject API
-# Build stage is handled by CI, this just packages the JAR
+# Multi-stage Dockerfile with optimized layer caching
+# Separates external dependencies from internal modules for maximum cache reuse
+#
+# Layer architecture (ordered by change frequency, least to most):
+# 1. dependencies        - External JARs (Spring, Jackson) - changes on dep updates
+# 2. spring-boot-loader  - Spring Boot loader classes - rarely changes
+# 3. snapshot-dependencies - SNAPSHOT dependencies - occasional
+# 4. internal-dependencies - Internal modules (common, core) - changes on feature commits
+# 5. application         - API module code + resources - changes on every build
 
+FROM eclipse-temurin:17-jre-alpine AS builder
+
+WORKDIR /app
+
+# Copy the pre-built JAR from CI
+COPY target/*.jar app.jar
+
+# Extract layers using Spring Boot layertools
+RUN java -Djarmode=layertools -jar app.jar extract
+
+# ─────────────────────────────────────────────────────────────────────────────
 FROM eclipse-temurin:17-jre-alpine AS runtime
 
 # Build-time arguments for OCI labels
@@ -32,10 +50,22 @@ LABEL com.example.image.retention="${RETENTION}"
 
 # Add non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
 
-# Copy the pre-built JAR from CI
-COPY --chown=appuser:appgroup target/*.jar app.jar
+# Copy layers in order of change frequency (least → most)
+# This maximizes layer cache reuse across builds
+#
+# Layer 1: External dependencies (Spring, Jackson, etc.) - changes on dep updates
+COPY --from=builder --chown=appuser:appgroup /app/dependencies/ ./
+# Layer 2: Spring Boot loader - rarely changes
+COPY --from=builder --chown=appuser:appgroup /app/spring-boot-loader/ ./
+# Layer 3: SNAPSHOT dependencies - occasional
+COPY --from=builder --chown=appuser:appgroup /app/snapshot-dependencies/ ./
+# Layer 4: Internal modules (common, core) - changes on feature commits
+COPY --from=builder --chown=appuser:appgroup /app/internal-dependencies/ ./
+# Layer 5: Application code (api module) - changes on every build
+COPY --from=builder --chown=appuser:appgroup /app/application/ ./
+
+USER appuser
 
 # Expose application port
 EXPOSE 8080
@@ -47,4 +77,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
 # JVM tuning for containers
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Use JarLauncher for layered JAR execution
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]
