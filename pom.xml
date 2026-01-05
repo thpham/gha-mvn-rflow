@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.example.myproject</groupId>
@@ -42,6 +42,11 @@
   </modules>
 
   <properties>
+    <!-- Reproducible Builds - Required for Docker layer caching optimization -->
+    <!-- When dependencies don't change, extracted layers have identical hashes -->
+    <!-- See: https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
+    <project.build.outputTimestamp>2026-01-01T00:00:00Z</project.build.outputTimestamp>
+
     <!-- Java/Kotlin versions -->
     <java.version>17</java.version>
     <kotlin.version>2.0.21</kotlin.version>
@@ -260,8 +265,8 @@
               <ktlint>
                 <version>1.4.1</version>
               </ktlint>
-              <endWithNewline/>
-              <trimTrailingWhitespace/>
+              <endWithNewline />
+              <trimTrailingWhitespace />
             </kotlin>
           </configuration>
         </plugin>
