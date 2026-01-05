@@ -24,8 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    # Only run if SONAR_TOKEN is configured
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    # Skip for Dependabot PRs (no access to secrets) and fork PRs
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
 
     steps:
       - name: Checkout
