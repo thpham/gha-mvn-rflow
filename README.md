@@ -191,17 +191,18 @@ pre-commit run --all-files
 
 **Hooks included:**
 
-| Hook | Purpose |
-|------|---------|
-| `trailing-whitespace` | Remove trailing whitespace |
-| `end-of-file-fixer` | Ensure files end with newline |
-| `check-yaml` | Validate YAML syntax |
-| `check-json` | Validate JSON syntax |
-| `hadolint` | Lint Dockerfile |
-| `detect-secrets` | Scan for accidentally committed secrets |
-| `spotless-check` | Kotlin code formatting (ktlint) |
-| `maven-validate` | POM syntax validation |
-| `commitlint` | Conventional commit message validation |
+| Hook                  | Purpose                                 |
+| --------------------- | --------------------------------------- |
+| `trailing-whitespace` | Remove trailing whitespace              |
+| `end-of-file-fixer`   | Ensure files end with newline           |
+| `check-yaml`          | Validate YAML syntax                    |
+| `check-json`          | Validate JSON syntax                    |
+| `hadolint`            | Lint Dockerfile                         |
+| `detect-secrets`      | Scan for accidentally committed secrets |
+| `actionlint`          | GitHub Actions workflow validation      |
+| `spotless-check`      | Kotlin code formatting (ktlint)         |
+| `maven-validate`      | POM syntax validation                   |
+| `commitlint`          | Conventional commit message validation  |
 
 **Skipping hooks** (when needed):
 
@@ -263,6 +264,7 @@ This project supports code quality analysis with either SonarCloud or self-hoste
 ### Setup
 
 1. **For SonarCloud:**
+
    - Create a project at [sonarcloud.io](https://sonarcloud.io)
    - Add `SONAR_TOKEN` secret to your GitHub repository
 
@@ -325,6 +327,119 @@ class DatabaseIntegrationTest {
     }
 }
 ```
+
+## GitHub Actions Security
+
+This project follows security best practices for GitHub Actions workflows, validated by automated tooling.
+
+### Security Measures
+
+| Practice                          | Description                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------- |
+| **Pinned Actions**                | All actions pinned to SHA hashes (not version tags) to prevent supply chain attacks |
+| **Minimal Permissions**           | Explicit `permissions:` blocks at job level with least-privilege principle          |
+| **Cache Poisoning Prevention**    | Read-only cache restore for PRs; cache writes only on push events                   |
+| **Credential Isolation**          | `persist-credentials: false` on all checkout steps                                  |
+| **Fork Protection**               | PR workflows verify `head.repo.full_name == github.repository`                      |
+| **Template Injection Prevention** | User-controlled data passed via `env:` blocks, not inline `${{ }}`                  |
+
+### Security Scanning Tools
+
+| Tool                                              | Purpose                                   | Install                   |
+| ------------------------------------------------- | ----------------------------------------- | ------------------------- |
+| [actionlint](https://github.com/rhysd/actionlint) | Workflow syntax and shellcheck validation | `brew install actionlint` |
+| [zizmor](https://github.com/woodruffw/zizmor)     | Security vulnerability scanning           | `brew install zizmor`     |
+
+### Running Security Scans
+
+```bash
+# Syntax and shell script validation
+actionlint
+
+# Security vulnerability scan
+zizmor .github/workflows/
+
+# Both tools should report no findings
+```
+
+### Suppressed Findings
+
+Some security findings are intentionally suppressed with documented justifications:
+
+| Rule                 | Workflow     | Justification                                                                                                                   |
+| -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `dangerous-triggers` | backport.yml | `pull_request_target` required for backport action write permissions. Mitigated by fork check and `persist-credentials: false`. |
+
+Suppressions use inline comments: `# zizmor: ignore[rule-name]`
+
+### Action Version Reference
+
+All actions are pinned to SHA hashes with version comments for maintainability:
+
+```yaml
+- uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+```
+
+To update actions, use tools like [Dependabot](https://docs.github.com/en/code-security/dependabot) or [Renovate](https://github.com/renovatebot/renovate).
+
+## Testing GitHub Actions Locally
+
+This project includes tools for testing GitHub Actions workflows locally before pushing.
+
+### Tools
+
+| Tool                                              | Purpose                         | Install                   |
+| ------------------------------------------------- | ------------------------------- | ------------------------- |
+| [actionlint](https://github.com/rhysd/actionlint) | Workflow syntax validation      | `brew install actionlint` |
+| [zizmor](https://github.com/woodruffw/zizmor)     | Security vulnerability scanning | `brew install zizmor`     |
+| [act](https://github.com/nektos/act)              | Run workflows locally           | `brew install act`        |
+
+### Quick Validation (No Docker)
+
+```bash
+# Lint all workflows
+actionlint
+
+# Security scan
+zizmor .github/workflows/
+
+# Lint specific workflow
+actionlint .github/workflows/ci.yml
+```
+
+### Local Execution with act
+
+```bash
+# List available workflows/jobs
+act -l
+
+# Run push event (simulates push to main)
+act push
+
+# Run specific job
+act -j build
+
+# Dry run (show what would run)
+act -n
+
+# Run with secrets
+cp .secrets.example .secrets  # Edit with your values
+act --secret-file .secrets
+```
+
+### Limitations
+
+**act** cannot fully simulate all GitHub Actions features:
+
+| Workflow             | act Support | Notes                              |
+| -------------------- | ----------- | ---------------------------------- |
+| ci.yml               | ⚠️ Partial  | Label conditions hard to simulate  |
+| sonar.yml            | ⚠️ Partial  | Requires SONAR_TOKEN               |
+| release.yml          | ❌ Limited  | release-please integration complex |
+| backport.yml         | ❌ Limited  | Requires merged PR event           |
+| cleanup-registry.yml | ❌ Limited  | Requires GHCR access               |
+
+**Recommendation**: Use `actionlint` for syntax validation (catches most issues), and test complex workflows via short-lived branches.
 
 ## License
 

@@ -17,7 +17,8 @@ jobs:
 
     steps:
       - name: Cleanup main branch images (keep last 5)
-        uses: snok/container-retention-policy@v3
+        # v3.0.1
+        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
         with:
           account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -27,7 +28,8 @@ jobs:
           keep-n-most-recent: 5
 
       - name: Cleanup PR images (keep last 20 total)
-        uses: snok/container-retention-policy@v3
+        # v3.0.1
+        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
         with:
           account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -37,7 +39,8 @@ jobs:
           keep-n-most-recent: 20
 
       - name: Cleanup edge tag duplicates
-        uses: snok/container-retention-policy@v3
+        # v3.0.1
+        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
         with:
           account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}

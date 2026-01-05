@@ -84,3 +84,7 @@ coverage/
 
 # Secrets baseline (detect-secrets)
 # Note: .secrets.baseline should be committed, but local cache should not
+
+# nektos/act (local GitHub Actions testing)
+.secrets
+act-artifacts/

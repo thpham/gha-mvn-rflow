@@ -1,0 +1,63 @@
+name: Lint Workflows
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint.yaml'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint.yaml'
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: lint-workflows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Run actionlint
+        # v1.7.4
+        uses: rhysd/actionlint@5db9d9cde2f3deb5035dea3e45f0a9fff2f29448
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  zizmor:
+    name: zizmor (Security)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        # v0.3.0
+        uses: zizmorcore/zizmor-action@e639db99335bc9038abc0e066dfcd72e23d26fb4
+        with:
+          sarif-file: results.sarif
+
+      - name: Upload SARIF
+        # v3
+        uses: github/codeql-action/upload-sarif@45c373516f557556c15d420e3f5e0aa3d64366bc
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: zizmor

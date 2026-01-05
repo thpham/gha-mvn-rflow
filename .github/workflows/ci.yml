@@ -15,6 +15,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/myproject-api
@@ -23,6 +26,8 @@ jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       primary_tag: ${{ steps.tags.outputs.primary_tag }}
@@ -31,43 +36,59 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        # v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: maven
+
+      - name: Restore Maven cache
+        # v4 - Read-only cache restore to prevent cache poisoning attacks
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
 
       - name: Extract version from POM
         id: version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "POM Version: ${VERSION}"
 
       - name: Generate image tags
         id: tags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           SHA_SHORT=$(git rev-parse --short HEAD)
           TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
 
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            PR_NUMBER=${{ github.event.pull_request.number }}
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
             PRIMARY_TAG="pr-${PR_NUMBER}-${TIMESTAMP}-${SHA_SHORT}"
             ROLLING_TAG="pr-${PR_NUMBER}"
-            echo "primary_tag=${PRIMARY_TAG}" >> $GITHUB_OUTPUT
-            echo "rolling_tag=${ROLLING_TAG}" >> $GITHUB_OUTPUT
-            echo "is_pr=true" >> $GITHUB_OUTPUT
+            {
+              echo "primary_tag=${PRIMARY_TAG}"
+              echo "rolling_tag=${ROLLING_TAG}"
+              echo "is_pr=true"
+            } >> "$GITHUB_OUTPUT"
           else
             PRIMARY_TAG="main-${TIMESTAMP}-${SHA_SHORT}"
             ROLLING_TAG="edge"
-            echo "primary_tag=${PRIMARY_TAG}" >> $GITHUB_OUTPUT
-            echo "rolling_tag=${ROLLING_TAG}" >> $GITHUB_OUTPUT
-            echo "is_pr=false" >> $GITHUB_OUTPUT
+            {
+              echo "primary_tag=${PRIMARY_TAG}"
+              echo "rolling_tag=${ROLLING_TAG}"
+              echo "is_pr=false"
+            } >> "$GITHUB_OUTPUT"
           fi
 
           echo "Primary tag (immutable): ${PRIMARY_TAG}"
@@ -77,7 +98,8 @@ jobs:
         run: mvn -B verify
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: test-results
@@ -85,26 +107,48 @@ jobs:
           retention-days: 7
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: build-artifacts
           path: modules/api/target/*.jar
           retention-days: 1
 
+      - name: Save Maven cache
+        # v4 - Only save cache on push events (not PRs) to prevent cache poisoning
+        if: github.event_name == 'push'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
   lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        # v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: maven
+
+      - name: Restore Maven cache
+        # v4 - Read-only cache restore to prevent cache poisoning attacks
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
 
       - name: Check Formatting
         run: mvn -B spotless:check
@@ -123,19 +167,25 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        # v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: build-artifacts
           path: modules/api/target/
 
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        # v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        # v3
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -143,17 +193,24 @@ jobs:
 
       - name: Determine image type
         id: image-type
+        env:
+          IS_PR: ${{ needs.build.outputs.is_pr }}
         run: |
-          if [[ "${{ needs.build.outputs.is_pr }}" == "true" ]]; then
-            echo "type=pr" >> $GITHUB_OUTPUT
-            echo "retention=3" >> $GITHUB_OUTPUT
+          if [[ "${IS_PR}" == "true" ]]; then
+            {
+              echo "type=pr"
+              echo "retention=3"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "type=snapshot" >> $GITHUB_OUTPUT
-            echo "retention=7" >> $GITHUB_OUTPUT
+            {
+              echo "type=snapshot"
+              echo "retention=7"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v6
+        # v6
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
         with:
           context: modules/api
           push: true
@@ -176,13 +233,19 @@ jobs:
 
       - name: Comment PR with preview info
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        # v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        env:
+          PRIMARY_TAG: ${{ needs.build.outputs.primary_tag }}
+          ROLLING_TAG: ${{ needs.build.outputs.rolling_tag }}
+          REGISTRY_URL: ${{ env.REGISTRY }}
+          IMAGE_NAME_VAL: ${{ env.IMAGE_NAME }}
         with:
           script: |
-            const primaryTag = '${{ needs.build.outputs.primary_tag }}';
-            const rollingTag = '${{ needs.build.outputs.rolling_tag }}';
-            const registry = '${{ env.REGISTRY }}';
-            const image = '${{ env.IMAGE_NAME }}';
+            const primaryTag = process.env.PRIMARY_TAG;
+            const rollingTag = process.env.ROLLING_TAG;
+            const registry = process.env.REGISTRY_URL;
+            const image = process.env.IMAGE_NAME_VAL;
 
             const body = `## Preview Deployment
 
