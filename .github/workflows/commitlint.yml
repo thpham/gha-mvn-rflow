@@ -14,6 +14,8 @@ jobs:
   commitlint:
     name: Lint Commit Messages
     runs-on: ubuntu-latest
+    # Skip for Dependabot PRs - their commit messages don't follow conventional commits
+    if: github.actor != 'dependabot[bot]'
 
     steps:
       - name: Checkout
