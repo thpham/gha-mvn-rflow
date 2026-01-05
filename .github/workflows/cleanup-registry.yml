@@ -30,7 +30,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
           tag-selection: tagged
-          filter-tags: 'pr-${{ github.event.pull_request.number }}*'
+          image-tags: 'pr-${{ github.event.pull_request.number }}*'
+          cut-off: 0s
           keep-n-most-recent: 0
 
   # Scheduled bulk cleanup
@@ -50,7 +51,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
           tag-selection: tagged
-          filter-tags: 'main-*'
+          image-tags: 'main-*'
+          cut-off: 7d
           keep-n-most-recent: 5
 
       - name: Cleanup orphaned PR images (keep last 20 total)
@@ -61,7 +63,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
           tag-selection: tagged
-          filter-tags: 'pr-*'
+          image-tags: 'pr-*'
+          cut-off: 7d
           keep-n-most-recent: 20
 
       # ─────────────────────────────────────────────────────────────────────────
@@ -86,4 +89,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
           tag-selection: untagged
+          cut-off: 1d
           keep-n-most-recent: 0
