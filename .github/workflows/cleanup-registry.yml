@@ -64,6 +64,20 @@ jobs:
           filter-tags: 'pr-*'
           keep-n-most-recent: 20
 
+      # ─────────────────────────────────────────────────────────────────────────
+      # Orphaned Architecture-Specific Manifest Cleanup
+      # ─────────────────────────────────────────────────────────────────────────
+      # Native multi-arch builds (matrix strategy) push arch-specific images
+      # by digest (untagged), then merge them into a tagged manifest list.
+      #
+      # Orphaned manifests can occur when:
+      # 1. A build fails after pushing arch images but before manifest merge
+      # 2. A tagged manifest list is deleted (arch manifests become orphaned)
+      #
+      # This step removes all untagged manifests, cleaning up:
+      # - Orphaned linux/amd64 and linux/arm64 arch-specific images
+      # - Any other intermediate build artifacts
+      # ─────────────────────────────────────────────────────────────────────────
       - name: Cleanup untagged manifests
         # v3.0.1
         uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
