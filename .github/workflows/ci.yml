@@ -127,6 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write  # Required to cancel workflow
 
     steps:
       - name: Checkout
@@ -151,7 +152,28 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Check Formatting
+        id: spotless
         run: mvn -B spotless:check
+        continue-on-error: true
+
+      - name: Cancel workflow on lint failure
+        if: steps.spotless.outcome == 'failure'
+        # v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            console.log('Lint failed - cancelling workflow to save CI minutes');
+            await github.rest.actions.cancelWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
+      - name: Fail job if lint failed
+        if: steps.spotless.outcome == 'failure'
+        run: |
+          echo "::error::Spotless check failed. Run 'mvn spotless:apply' to fix formatting."
+          exit 1
 
   publish-preview:
     name: Publish Preview
