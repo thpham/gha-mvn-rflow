@@ -1,6 +1,10 @@
 # Multi-stage Dockerfile with optimized layer caching
 # Separates external dependencies from internal modules for maximum cache reuse
 #
+# Uses UBI 10 Minimal base for multi-architecture support (amd64 + arm64)
+# Alpine images don't have ARM64 variants for eclipse-temurin
+# UBI provides enterprise-grade security and RHEL compatibility
+#
 # Layer architecture (ordered by change frequency, least to most):
 # 1. dependencies        - External JARs (Spring, Jackson) - changes on dep updates
 # 2. spring-boot-loader  - Spring Boot loader classes - rarely changes
@@ -8,7 +12,7 @@
 # 4. internal-dependencies - Internal modules (common, core) - changes on feature commits
 # 5. application         - API module code + resources - changes on every build
 
-FROM eclipse-temurin:17-jre-alpine AS builder
+FROM eclipse-temurin:17-jre-ubi10-minimal AS builder
 
 WORKDIR /app
 
@@ -19,7 +23,7 @@ COPY target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # ─────────────────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine AS runtime
+FROM eclipse-temurin:17-jre-ubi10-minimal AS runtime
 
 # Build-time arguments for OCI labels
 ARG GIT_SHA="unknown"
@@ -49,7 +53,8 @@ LABEL com.example.image.branch="${BRANCH_NAME}"
 LABEL com.example.image.retention="${RETENTION}"
 
 # Add non-root user for security
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# UBI minimal doesn't include shadow-utils by default, but useradd/groupadd are available
+RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
 
 # Copy layers in order of change frequency (least → most)
 # This maximizes layer cache reuse across builds
@@ -72,7 +77,7 @@ EXPOSE 8080
 
 # Health check using Spring Boot Actuator
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+  CMD curl -sf http://localhost:8080/actuator/health || exit 1
 
 # JVM tuning for containers
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
