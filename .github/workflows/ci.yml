@@ -5,11 +5,19 @@ on:
     branches:
       - main
       - 'release/**'
+    paths:
+      - 'pom.xml'
+      - 'modules/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches:
       - main
       - 'release/**'
     types: [opened, synchronize, reopened, labeled]
+    paths:
+      - 'pom.xml'
+      - 'modules/**'
+      - '.github/workflows/ci.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
