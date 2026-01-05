@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
       security-events: write
     steps:
       - name: Checkout
@@ -49,15 +50,5 @@ jobs:
           persist-credentials: false
 
       - name: Run zizmor
-        # v0.3.0
+        # v0.3.0 - Uploads to GitHub Advanced Security automatically
         uses: zizmorcore/zizmor-action@e639db99335bc9038abc0e066dfcd72e23d26fb4
-        with:
-          sarif-file: results.sarif
-
-      - name: Upload SARIF
-        # v3
-        uses: github/codeql-action/upload-sarif@45c373516f557556c15d420e3f5e0aa3d64366bc
-        if: always()
-        with:
-          sarif_file: results.sarif
-          category: zizmor
