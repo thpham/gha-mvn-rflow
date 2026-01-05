@@ -71,7 +71,7 @@
     <!-- Plugins -->
     <jreleaser-maven-plugin.version>1.14.0</jreleaser-maven-plugin.version>
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
