@@ -334,6 +334,40 @@ class DatabaseIntegrationTest {
 }
 ```
 
+## GitHub Repository Settings
+
+Before the CI/CD workflows can function properly, you need to configure the following repository settings.
+
+### Required Permissions
+
+Navigate to **Settings** → **Actions** → **General** → **Workflow permissions**:
+
+| Setting                                                      | Value      | Required For                                       |
+| ------------------------------------------------------------ | ---------- | -------------------------------------------------- |
+| **Allow GitHub Actions to create and approve pull requests** | ✅ Enabled | Release Please (creates release PRs automatically) |
+
+> **Why is this needed?** Release Please creates a pull request to track version bumps and changelog updates. Without this permission, the workflow fails with: `GitHub Actions is not permitted to create or approve pull requests`.
+
+### Required Secrets
+
+Navigate to **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret           | Required      | Description                                     |
+| ---------------- | ------------- | ----------------------------------------------- |
+| `SONAR_TOKEN`    | For SonarQube | Token for SonarCloud or self-hosted SonarQube   |
+| `SONAR_HOST_URL` | Optional      | Self-hosted SonarQube URL (omit for SonarCloud) |
+
+> **Note**: `GITHUB_TOKEN` is automatically provided by GitHub Actions - no configuration needed.
+
+### Package Visibility (GHCR)
+
+To allow public access to Docker images:
+
+1. Go to the package page: `https://github.com/users/{owner}/packages/container/{repo}%2Fmyproject-api`
+2. Click **Package settings** → **Change visibility** → **Public**
+
+---
+
 ## GitHub Actions Security
 
 This project follows security best practices for GitHub Actions workflows, validated by automated tooling.
