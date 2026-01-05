@@ -19,8 +19,8 @@ WORKDIR /app
 # Copy the pre-built JAR from CI
 COPY target/*.jar app.jar
 
-# Extract layers using Spring Boot layertools
-RUN java -Djarmode=layertools -jar app.jar extract
+# Extract layers using Spring Boot tools (Spring Boot 4.0+ syntax)
+RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted
 
 # ─────────────────────────────────────────────────────────────────────────────
 FROM eclipse-temurin:17-jre-ubi10-minimal AS runtime
@@ -60,15 +60,15 @@ RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
 # This maximizes layer cache reuse across builds
 #
 # Layer 1: External dependencies (Spring, Jackson, etc.) - changes on dep updates
-COPY --from=builder --chown=appuser:appgroup /app/dependencies/ ./
+COPY --from=builder --chown=appuser:appgroup /app/extracted/dependencies/ ./
 # Layer 2: Spring Boot loader - rarely changes
-COPY --from=builder --chown=appuser:appgroup /app/spring-boot-loader/ ./
+COPY --from=builder --chown=appuser:appgroup /app/extracted/spring-boot-loader/ ./
 # Layer 3: SNAPSHOT dependencies - occasional
-COPY --from=builder --chown=appuser:appgroup /app/snapshot-dependencies/ ./
+COPY --from=builder --chown=appuser:appgroup /app/extracted/snapshot-dependencies/ ./
 # Layer 4: Internal modules (common, core) - changes on feature commits
-COPY --from=builder --chown=appuser:appgroup /app/internal-dependencies/ ./
+COPY --from=builder --chown=appuser:appgroup /app/extracted/internal-dependencies/ ./
 # Layer 5: Application code (api module) - changes on every build
-COPY --from=builder --chown=appuser:appgroup /app/application/ ./
+COPY --from=builder --chown=appuser:appgroup /app/extracted/application/ ./
 
 USER appuser
 
