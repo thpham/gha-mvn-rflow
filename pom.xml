@@ -59,7 +59,7 @@
 
     <!-- Testing -->
     <mockk.version>1.14.7</mockk.version>
-    <springdoc.version>2.6.0</springdoc.version>
+    <springdoc.version>3.0.1</springdoc.version>
     <testcontainers.version>1.20.4</testcontainers.version>
 
     <!-- Code Quality -->
