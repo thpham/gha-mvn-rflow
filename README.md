@@ -1,0 +1,256 @@
+# MyProject
+
+A Kotlin Spring Boot multi-module project with automated release management using GitHub Actions, Release Please, and JReleaser.
+
+## Features
+
+- **Multi-module Maven project** with Kotlin and Spring Boot 3.3.x
+- **Automated releases** via Release Please (versioning, changelog)
+- **Artifact distribution** via JReleaser (Docker, GitHub Packages)
+- **Conventional commits** enforcement with commitlint
+- **Cherry-pick automation** for backporting fixes to release branches
+- **Preview deployments** for pull requests (on-demand via label)
+
+## Prerequisites
+
+- JDK 17+
+- Maven 3.9+
+- Docker (for building images locally)
+- [pre-commit](https://pre-commit.com/) (for Git hooks)
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/thpham/gha-mvn-rflow.git
+cd gha-mvn-rflow
+
+# Build and test
+mvn clean verify
+
+# Run the API locally
+mvn spring-boot:run -pl modules/api
+
+# Access the API
+curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/api/v1/info
+
+# Access Swagger UI
+open http://localhost:8080/swagger-ui.html
+```
+
+## Project Structure
+
+```
+.
+├── modules/
+│   ├── common/          # Shared utilities, DTOs, constants
+│   ├── core/            # Business logic and services
+│   └── api/             # REST API (Spring Boot application)
+├── .github/
+│   └── workflows/       # CI/CD workflows
+├── pom.xml              # Parent POM
+├── jreleaser.yml        # JReleaser configuration
+└── release-please-config.json
+```
+
+## Docker Images
+
+Docker images are published to GitHub Container Registry (GHCR).
+
+### Tagging Strategy
+
+| Source       | Tag Pattern                              | Example                                 |
+| ------------ | ---------------------------------------- | --------------------------------------- |
+| Release      | `{version}`, `{major}.{minor}`, `latest` | `1.2.3`, `1.2`, `latest`                |
+| Main branch  | `main-{timestamp}-{sha}`, `edge`         | `main-20250105143052-a1b2c3d`, `edge`   |
+| Pull Request | `pr-{N}-{timestamp}-{sha}`, `pr-{N}`     | `pr-42-20250105143052-a1b2c3d`, `pr-42` |
+
+### Pull an Image
+
+```bash
+# Latest release
+docker pull ghcr.io/thpham/gha-mvn-rflow/myproject-api:latest
+
+# Specific version
+docker pull ghcr.io/thpham/gha-mvn-rflow/myproject-api:1.0.0
+
+# Edge (latest from main)
+docker pull ghcr.io/thpham/gha-mvn-rflow/myproject-api:edge
+```
+
+## Release Flow
+
+This project follows the **Release Flow** branching strategy:
+
+```
+main (development)
+  │
+  ├── feature/xyz → PR → main (squash merge)
+  │                   │
+  │                   └── Merge → Release Please PR → Merge → v1.2.3
+  │                                                      │
+  │                                                      └── JReleaser:
+  │                                                          - Docker image
+  │                                                          - GitHub Packages
+  │
+  └── release/1.x (LTS/maintenance)
+        └── Backport via label: "backport release/1.x"
+```
+
+### Creating a Release
+
+1. Merge PRs with conventional commit messages to `main`
+2. Release Please automatically creates a Release PR
+3. Review and merge the Release PR
+4. JReleaser publishes artifacts and Docker images
+
+### Backporting
+
+To backport a fix to a release branch:
+
+1. Merge the fix to `main` first
+2. Add label `backport release/1.x` to the merged PR
+3. A cherry-pick PR is automatically created
+
+## Commit Conventions
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+
+| Type       | Description   | Version Bump |
+| ---------- | ------------- | ------------ |
+| `feat`     | New feature   | Minor        |
+| `fix`      | Bug fix       | Patch        |
+| `docs`     | Documentation | Patch        |
+| `perf`     | Performance   | Patch        |
+| `refactor` | Refactoring   | Patch        |
+| `test`     | Tests         | None         |
+| `ci`       | CI/CD         | None         |
+| `chore`    | Maintenance   | None         |
+
+### Scopes
+
+- `core` - Core module
+- `api` - API module
+- `common` - Common module
+- `deps` - Dependencies
+- `ci` - CI/CD
+- `docker` - Docker
+
+### Examples
+
+```bash
+feat(api): add user authentication endpoint
+fix(core): resolve null pointer in health check
+docs: update README with Docker instructions
+refactor(common): simplify API response wrapper
+```
+
+## Preview Deployments
+
+To get a preview Docker image for your PR:
+
+1. Add the `deploy-preview` label to your PR
+2. CI will build and push a Docker image
+3. A comment with pull instructions will be added to the PR
+
+## Development
+
+### Setting Up Pre-commit Hooks
+
+This project uses [pre-commit](https://pre-commit.com/) to run quality checks before each commit:
+
+```bash
+# Install pre-commit (choose one)
+brew install pre-commit          # macOS
+pip install pre-commit           # Python/pip
+pipx install pre-commit          # pipx (isolated)
+
+# Install the Git hooks
+pre-commit install
+pre-commit install --hook-type commit-msg
+
+# Run all hooks manually (optional)
+pre-commit run --all-files
+```
+
+**Hooks included:**
+
+| Hook | Purpose |
+|------|---------|
+| `trailing-whitespace` | Remove trailing whitespace |
+| `end-of-file-fixer` | Ensure files end with newline |
+| `check-yaml` | Validate YAML syntax |
+| `check-json` | Validate JSON syntax |
+| `hadolint` | Lint Dockerfile |
+| `detect-secrets` | Scan for accidentally committed secrets |
+| `spotless-check` | Kotlin code formatting (ktlint) |
+| `maven-validate` | POM syntax validation |
+| `commitlint` | Conventional commit message validation |
+
+**Skipping hooks** (when needed):
+
+```bash
+# Skip all hooks
+git commit --no-verify -m "message"
+
+# Skip specific hook
+SKIP=spotless-check git commit -m "message"
+```
+
+### Running Tests
+
+```bash
+# All tests
+mvn test
+
+# Single module
+mvn test -pl modules/core
+
+# With coverage
+mvn verify
+```
+
+### Code Formatting
+
+```bash
+# Check formatting
+mvn spotless:check
+
+# Apply formatting
+mvn spotless:apply
+```
+
+### Local Docker Build
+
+```bash
+# Build the JAR first
+mvn package -pl modules/api -am -DskipTests
+
+# Build Docker image
+docker build -t myproject-api:local modules/api
+
+# Run locally
+docker run -p 8080:8080 myproject-api:local
+```
+
+## API Documentation
+
+When the application is running, API documentation is available at:
+
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- OpenAPI JSON: http://localhost:8080/api-docs
+
+## License
+
+Apache License 2.0

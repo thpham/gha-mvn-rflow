@@ -1,0 +1,46 @@
+name: Cleanup Container Registry
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: myproject-api
+
+jobs:
+  cleanup:
+    name: Cleanup Old Images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Cleanup main branch images (keep last 5)
+        uses: snok/container-retention-policy@v3
+        with:
+          account: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          tag-selection: tagged
+          filter-tags: 'main-*'
+          keep-n-most-recent: 5
+
+      - name: Cleanup PR images (keep last 20 total)
+        uses: snok/container-retention-policy@v3
+        with:
+          account: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          tag-selection: tagged
+          filter-tags: 'pr-*'
+          keep-n-most-recent: 20
+
+      - name: Cleanup edge tag duplicates
+        uses: snok/container-retention-policy@v3
+        with:
+          account: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          tag-selection: untagged
+          keep-n-most-recent: 0

@@ -1,0 +1,122 @@
+# JReleaser Configuration
+# Handles: artifact distribution, Docker publishing, announcements, signing
+
+project:
+  name: myproject
+  description: Kotlin Spring Boot Multi-Module Project with Release Automation
+  longDescription: |
+    A modern Kotlin-based Spring Boot application demonstrating
+    best practices for release automation using Release Please and JReleaser.
+  website: https://github.com/thpham/gha-mvn-rflow
+  license: Apache-2.0
+  authors:
+    - Thanh Pham
+  tags:
+    - kotlin
+    - spring-boot
+    - maven
+    - release-automation
+  java:
+    groupId: com.example.myproject
+    artifactId: myproject-api
+    version: 17
+
+  # Version is read from environment or pom.xml
+  versionPattern: SEMVER
+
+# =============================================================================
+# Release Configuration
+# =============================================================================
+release:
+  github:
+    # Release Please creates the release, JReleaser enriches it
+    update:
+      enabled: true
+      sections:
+        - ASSETS
+
+    # Skip tag creation - Release Please handles this
+    skipTag: true
+
+    # Skip changelog - Release Please handles this
+    changelog:
+      enabled: false
+
+    # Overwrite existing assets
+    overwrite: true
+
+    # Release name template
+    releaseName: 'v{{projectVersion}}'
+
+# =============================================================================
+# Signing Configuration (GPG) - Optional
+# =============================================================================
+signing:
+  active: NEVER  # Change to ALWAYS when GPG is configured
+  armored: true
+  mode: MEMORY
+  # Credentials via environment variables:
+  # JRELEASER_GPG_SECRET_KEY
+  # JRELEASER_GPG_PASSPHRASE
+  # JRELEASER_GPG_PUBLIC_KEY
+
+# =============================================================================
+# Distribution - Maven Artifacts
+# =============================================================================
+deploy:
+  maven:
+    # GitHub Packages
+    github:
+      github-packages:
+        active: RELEASE
+        url: https://maven.pkg.github.com/thpham/gha-mvn-rflow
+        # Credentials via: JRELEASER_GITHUB_TOKEN
+
+# =============================================================================
+# Files to include in release
+# =============================================================================
+files:
+  artifacts:
+    - path: modules/api/target/api-{{projectVersion}}.jar
+      transform: 'myproject-api-{{projectVersion}}.jar'
+
+# =============================================================================
+# Announcements - Optional
+# =============================================================================
+announce:
+  # Microsoft Teams notification - uncomment and configure if needed
+  # teams:
+  #   active: RELEASE
+  #   webhook: '{{env.JRELEASER_TEAMS_WEBHOOK}}'
+  #   messageTemplate: |
+  #     {
+  #       "@type": "MessageCard",
+  #       "@context": "http://schema.org/extensions",
+  #       "themeColor": "0076D7",
+  #       "summary": "{{projectName}} {{projectVersion}} Released",
+  #       "sections": [{
+  #         "activityTitle": "{{projectName}} {{projectVersion}} has been released!",
+  #         "facts": [{
+  #           "name": "Version",
+  #           "value": "{{projectVersion}}"
+  #         }, {
+  #           "name": "Docker Image",
+  #           "value": "ghcr.io/thpham/gha-mvn-rflow/myproject-api:{{projectVersion}}"
+  #         }],
+  #         "markdown": true
+  #       }],
+  #       "potentialAction": [{
+  #         "@type": "OpenUri",
+  #         "name": "View Release",
+  #         "targets": [{
+  #           "os": "default",
+  #           "uri": "{{releaseNotesUrl}}"
+  #         }]
+  #       }]
+  #     }
+
+  # Slack notification - uncomment and configure if needed
+  # slack:
+  #   active: RELEASE
+  #   channel: '#releases'
+  #   webhook: '{{env.JRELEASER_SLACK_WEBHOOK}}'

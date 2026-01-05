@@ -1,0 +1,43 @@
+# Auto-label PRs based on file paths
+
+module:api:
+  - changed-files:
+      - any-glob-to-any-file: 'modules/api/**'
+
+module:core:
+  - changed-files:
+      - any-glob-to-any-file: 'modules/core/**'
+
+module:common:
+  - changed-files:
+      - any-glob-to-any-file: 'modules/common/**'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/Dockerfile'
+          - 'docker-compose*.yml'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/pom.xml'
+          - 'mvnw*'
+          - '.mvn/**'
+
+release:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'release-please-config.json'
+          - '.release-please-manifest.json'
+          - 'jreleaser.yml'

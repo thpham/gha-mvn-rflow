@@ -1,0 +1,9 @@
+# Default owners for everything
+* @thpham
+
+# Workflow files require review
+.github/ @thpham
+
+# Release configuration
+release-please-config.json @thpham
+jreleaser.yml @thpham

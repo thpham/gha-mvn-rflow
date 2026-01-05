@@ -1,0 +1,211 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+    types: [opened, synchronize, reopened, labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/myproject-api
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      primary_tag: ${{ steps.tags.outputs.primary_tag }}
+      rolling_tag: ${{ steps.tags.outputs.rolling_tag }}
+      is_pr: ${{ steps.tags.outputs.is_pr }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from POM
+        id: version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "POM Version: ${VERSION}"
+
+      - name: Generate image tags
+        id: tags
+        run: |
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            PR_NUMBER=${{ github.event.pull_request.number }}
+            PRIMARY_TAG="pr-${PR_NUMBER}-${TIMESTAMP}-${SHA_SHORT}"
+            ROLLING_TAG="pr-${PR_NUMBER}"
+            echo "primary_tag=${PRIMARY_TAG}" >> $GITHUB_OUTPUT
+            echo "rolling_tag=${ROLLING_TAG}" >> $GITHUB_OUTPUT
+            echo "is_pr=true" >> $GITHUB_OUTPUT
+          else
+            PRIMARY_TAG="main-${TIMESTAMP}-${SHA_SHORT}"
+            ROLLING_TAG="edge"
+            echo "primary_tag=${PRIMARY_TAG}" >> $GITHUB_OUTPUT
+            echo "rolling_tag=${ROLLING_TAG}" >> $GITHUB_OUTPUT
+            echo "is_pr=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Primary tag (immutable): ${PRIMARY_TAG}"
+          echo "Rolling tag: ${ROLLING_TAG}"
+
+      - name: Build and Test
+        run: mvn -B verify
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: modules/api/target/*.jar
+          retention-days: 1
+
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Check Formatting
+        run: mvn -B spotless:check
+
+  publish-preview:
+    name: Publish Preview
+    needs: [build, lint]
+    if: |
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-preview')) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: modules/api/target/
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine image type
+        id: image-type
+        run: |
+          if [[ "${{ needs.build.outputs.is_pr }}" == "true" ]]; then
+            echo "type=pr" >> $GITHUB_OUTPUT
+            echo "retention=3" >> $GITHUB_OUTPUT
+          else
+            echo "type=snapshot" >> $GITHUB_OUTPUT
+            echo "retention=7" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: modules/api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.primary_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.rolling_tag }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            BUILD_TIMESTAMP=${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
+            VERSION=${{ needs.build.outputs.version }}
+            IMAGE_TYPE=${{ steps.image-type.outputs.type }}
+            PR_NUMBER=${{ github.event.pull_request.number || '' }}
+            BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+            RETENTION=${{ steps.image-type.outputs.retention }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Comment PR with preview info
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const primaryTag = '${{ needs.build.outputs.primary_tag }}';
+            const rollingTag = '${{ needs.build.outputs.rolling_tag }}';
+            const registry = '${{ env.REGISTRY }}';
+            const image = '${{ env.IMAGE_NAME }}';
+
+            const body = `## Preview Deployment
+
+            Docker image published for this PR:
+
+            \`\`\`bash
+            # Immutable tag (recommended for testing)
+            docker pull ${registry}/${image}:${primaryTag}
+
+            # Rolling tag (always points to latest build of this PR)
+            docker pull ${registry}/${image}:${rollingTag}
+            \`\`\`
+
+            **Tags created:**
+            - \`${primaryTag}\` - immutable, commit-specific
+            - \`${rollingTag}\` - rolling, updates on each push
+
+            > These images will be automatically cleaned up 7 days after the PR is closed.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
