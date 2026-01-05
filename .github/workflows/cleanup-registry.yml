@@ -1,6 +1,10 @@
 name: Cleanup Container Registry
 
 on:
+  # Immediate cleanup when PR is closed (merged or declined)
+  pull_request:
+    types: [closed]
+  # Scheduled cleanup as safety net
   schedule:
     - cron: '0 3 * * *'  # Daily at 3 AM UTC
   workflow_dispatch:
@@ -9,8 +13,30 @@ env:
   IMAGE_NAME: myproject-api
 
 jobs:
-  cleanup:
-    name: Cleanup Old Images
+  # Cleanup specific PR images when PR is closed
+  cleanup-pr:
+    name: Cleanup PR Images
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Delete PR images
+        # v3.0.1
+        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
+        with:
+          account: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          tag-selection: tagged
+          filter-tags: 'pr-${{ github.event.pull_request.number }}*'
+          keep-n-most-recent: 0
+
+  # Scheduled bulk cleanup
+  cleanup-scheduled:
+    name: Scheduled Cleanup
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -27,8 +53,8 @@ jobs:
           filter-tags: 'main-*'
           keep-n-most-recent: 5
 
-      - name: Cleanup PR images (keep last 20 total)
-        # v3.0.1
+      - name: Cleanup orphaned PR images (keep last 20 total)
+        # v3.0.1 - Catches any PR images missed by event-based cleanup
         uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
         with:
           account: ${{ github.repository_owner }}
@@ -38,7 +64,7 @@ jobs:
           filter-tags: 'pr-*'
           keep-n-most-recent: 20
 
-      - name: Cleanup edge tag duplicates
+      - name: Cleanup untagged manifests
         # v3.0.1
         uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
         with:

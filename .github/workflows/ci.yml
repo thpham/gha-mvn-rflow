@@ -157,7 +157,7 @@ jobs:
     name: Publish Preview
     needs: [build, lint]
     if: |
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-preview')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'preview-image')) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     permissions:
@@ -247,7 +247,7 @@ jobs:
             const registry = process.env.REGISTRY_URL;
             const image = process.env.IMAGE_NAME_VAL;
 
-            const body = `## Preview Deployment
+            const body = `## Preview Image
 
             Docker image published for this PR:
 

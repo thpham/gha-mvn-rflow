@@ -161,13 +161,19 @@ docs: update README with Docker instructions
 refactor(common): simplify API response wrapper
 ```
 
-## Preview Deployments
+## Preview Images
 
-To get a preview Docker image for your PR:
+To build a preview Docker image for your PR:
 
-1. Add the `deploy-preview` label to your PR
-2. CI will build and push a Docker image
-3. A comment with pull instructions will be added to the PR
+1. Add the `preview-image` label to your PR
+2. CI will build and push a Docker image to GHCR
+3. A comment with `docker pull` instructions will be added to the PR
+
+**Automatic rebuilds**: Once the label is added, every new commit pushed to the PR will automatically build a new image with fresh tags.
+
+**Automatic cleanup**: When a PR is closed (merged or declined), all associated images (`pr-{N}*`) are automatically deleted from the registry.
+
+> **Note**: This builds an image for manual testing - it does not deploy to any environment.
 
 ## Development
 

@@ -22,11 +22,11 @@
 - [ ] My commits follow [conventional commit](https://www.conventionalcommits.org/) format
 - [ ] I have reviewed my own code
 
-## Preview Deployment
+## Preview Image
 
-<!-- Add the `deploy-preview` label to trigger a preview Docker image build -->
+<!-- Add the `preview-image` label to build and publish a Docker image for this PR -->
 
-- [ ] I want a preview deployment (add `deploy-preview` label)
+- [ ] I want a preview Docker image (add `preview-image` label)
 
 ## Backport
 
