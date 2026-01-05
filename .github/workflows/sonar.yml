@@ -8,7 +8,6 @@ on:
     paths:
       - 'pom.xml'
       - 'modules/**'
-      - '.github/workflows/sonar.yml'
   pull_request:
     branches:
       - main
@@ -16,7 +15,6 @@ on:
     paths:
       - 'pom.xml'
       - 'modules/**'
-      - '.github/workflows/sonar.yml'
 
 # Cancel in-progress runs for the same branch
 concurrency:
