@@ -22,7 +22,29 @@ jobs:
       packages: write
 
     steps:
+      - name: Check if PR images exist
+        id: check-images
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Check if any images with pr-{N} tag pattern exist
+          RESPONSE=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/users/${{ github.repository_owner }}/packages/container/${{ github.event.repository.name }}%2F${{ env.IMAGE_NAME }}/versions" \
+            --paginate 2>/dev/null || echo "[]")
+
+          # Check if any tags match the PR pattern
+          if echo "$RESPONSE" | jq -e --arg pr "pr-${PR_NUMBER}" '.[] | select(.metadata.container.tags[] | startswith($pr))' > /dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "Found images for PR #${PR_NUMBER}"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No images found for PR #${PR_NUMBER} - skipping cleanup"
+          fi
+
       - name: Delete PR images
+        if: steps.check-images.outputs.found == 'true'
         # v3.0.1
         uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
         with:
