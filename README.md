@@ -4,7 +4,7 @@ A Kotlin Spring Boot multi-module project with automated release management usin
 
 ## Features
 
-- **Multi-module Maven project** with Kotlin and Spring Boot 3.3.x
+- **Multi-module Maven project** with Kotlin 2.3 and Spring Boot 4.0
 - **Automated releases** via Release Please (versioning, changelog)
 - **Artifact distribution** via JReleaser (Docker, GitHub Packages)
 - **SBOM generation** via CycloneDX (JSON and XML formats)
@@ -292,7 +292,7 @@ mvn verify sonar:sonar \
 
 ## Integration Testing (Testcontainers)
 
-Testcontainers is pre-configured for integration testing with real dependencies.
+Testcontainers 2.x is pre-configured for integration testing with real dependencies.
 
 ### Available Containers
 
@@ -314,6 +314,8 @@ Add containers as needed in `modules/api/pom.xml`:
 </dependency>
 ```
 
+> **Note**: Testcontainers 2.x renamed `junit-jupiter` to `testcontainers-junit-jupiter`. The project is already configured with the correct artifact.
+
 ### Example Test
 
 ```kotlin
@@ -323,7 +325,7 @@ class DatabaseIntegrationTest {
 
     companion object {
         @Container
-        val postgres = PostgreSQLContainer("postgres:16-alpine")
+        val postgres = PostgreSQLContainer("postgres:17-alpine")
             .withDatabaseName("testdb")
     }
 
