@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant
 
 /**
- * Generic API response wrapper for consistent response format.
+ * Generic API response wrapper for consistent response format
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ApiResponse<T>(

@@ -6,11 +6,24 @@ on:
     types: [closed]
   # Scheduled cleanup as safety net
   schedule:
-    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+    - cron: "0 3 * * *" # Daily at 3 AM UTC
   workflow_dispatch:
 
 env:
   IMAGE_NAME: myproject-api
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GHCR Cleanup Strategy
+# ─────────────────────────────────────────────────────────────────────────────
+# Uses dataaxiom/ghcr-cleanup-action which:
+# - Properly handles multi-architecture images (preserves manifest integrity)
+# - Supports wildcard and regex patterns for flexible tag matching
+# - Handles referrers/attestations and cosign signatures
+#
+# Our tagging strategy creates TWO tags per image:
+# - Push to main: main-{timestamp}-{sha} + edge
+# - Pull request: pr-{N}-{timestamp}-{sha} + pr-{N}
+# ─────────────────────────────────────────────────────────────────────────────
 
 jobs:
   # Cleanup specific PR images when PR is closed
@@ -18,6 +31,8 @@ jobs:
     name: Cleanup PR Images
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    concurrency:
+      group: cleanup-images
     permissions:
       packages: write
 
@@ -47,71 +62,74 @@ jobs:
 
       - name: Delete PR images
         if: steps.check-images.outputs.found == 'true'
-        # v3.0.1
-        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
+        # v1.0.16 - Handles multi-arch images safely
+        uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4
         with:
-          account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
-          tag-selection: tagged
-          image-tags: 'pr-${{ github.event.pull_request.number }}*'
-          cut-off: 0s
-          keep-n-most-recent: 0
+          package: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          # Match both rolling tag (pr-N) and timestamped tags (pr-N-*)
+          delete-tags: pr-${{ github.event.pull_request.number }},pr-${{ github.event.pull_request.number }}-*
 
   # Scheduled bulk cleanup
   cleanup-scheduled:
     name: Scheduled Cleanup
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    concurrency:
+      group: cleanup-images
     permissions:
       packages: write
 
     steps:
-      - name: Cleanup main branch images (keep last 5)
-        # v3.0.1
-        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
-        with:
-          account: ${{ github.repository_owner }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
-          tag-selection: tagged
-          image-tags: 'main-*'
-          cut-off: 7d
-          keep-n-most-recent: 5
+      # ─────────────────────────────────────────────────────────────────────────
+      # Build exclude pattern for open PRs
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: Get open PR numbers
+        id: open-prs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Fetch all open PR numbers (use --repo since no git checkout)
+          OPEN_PRS=$(gh pr list --repo "$REPO" --state open --json number --jq '.[].number' | tr '\n' '|' | sed 's/|$//')
 
-      - name: Cleanup orphaned PR images (keep last 20 total)
-        # v3.0.1 - Catches any PR images missed by event-based cleanup
-        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
-        with:
-          account: ${{ github.repository_owner }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
-          tag-selection: tagged
-          image-tags: 'pr-*'
-          cut-off: 7d
-          keep-n-most-recent: 20
+          if [[ -n "$OPEN_PRS" ]]; then
+            # Build regex to exclude open PR tags: ^pr-(1|2|3)(-.*)?$
+            echo "exclude_pattern=^(edge|v?[0-9]+\.[0-9]+\.[0-9]+.*|pr-(${OPEN_PRS})(-.*)?)$" >> "$GITHUB_OUTPUT"
+            echo "Open PRs to preserve: ${OPEN_PRS//|/, }"
+          else
+            # No open PRs, just exclude edge and semver tags
+            echo "exclude_pattern=^(edge|v?[0-9]+\.[0-9]+\.[0-9]+.*)$" >> "$GITHUB_OUTPUT"
+            echo "No open PRs found"
+          fi
 
       # ─────────────────────────────────────────────────────────────────────────
-      # Orphaned Architecture-Specific Manifest Cleanup
+      # Combined Cleanup
       # ─────────────────────────────────────────────────────────────────────────
-      # Native multi-arch builds (matrix strategy) push arch-specific images
-      # by digest (untagged), then merge them into a tagged manifest list.
+      # Single action call that handles all cleanup in one pass:
+      # - Deletes old main-* timestamped tags (keeps 5 newest)
+      # - Deletes orphaned PR images (closed PRs)
+      # - Cleans up untagged manifests (keeps 4 for in-progress builds)
       #
-      # Orphaned manifests can occur when:
-      # 1. A build fails after pushing arch images but before manifest merge
-      # 2. A tagged manifest list is deleted (arch manifests become orphaned)
-      #
-      # This step removes all untagged manifests, cleaning up:
-      # - Orphaned linux/amd64 and linux/arm64 arch-specific images
-      # - Any other intermediate build artifacts
+      # Preserves:
+      # - 'edge' rolling tag (latest main build)
+      # - Semantic version tags (v1.2.3, etc.)
+      # - Open PR tags (pr-N and pr-N-*)
+      # - Multi-arch image integrity (children of tagged manifests)
       # ─────────────────────────────────────────────────────────────────────────
-      - name: Cleanup untagged manifests
-        # v3.0.1
-        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb
+      - name: Cleanup container images
+        # v1.0.16 - Handles multi-arch images safely
+        uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4
         with:
-          account: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
-          tag-selection: untagged
-          cut-off: 1d
-          keep-n-most-recent: 0
+          package: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          # Match main-* and pr-* tags for cleanup
+          delete-tags: ^(main-[0-9]{14}-[a-f0-9]+|pr-[0-9]+(-.*)?)$
+          use-regex: true
+          # Preserve edge, semver tags, and open PR tags
+          exclude-tags: ${{ steps.open-prs.outputs.exclude_pattern }}
+          # Keep 5 most recent tagged images matching delete-tags pattern
+          keep-n-tagged: 5
+          delete-ghost-images: true
+          delete-partial-images: true
+          delete-orphaned-images: true
