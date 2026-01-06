@@ -55,6 +55,8 @@ logs/
 *.env
 application-local.yml
 application-local.properties
+.direnv/
+.claude/
 
 # Test outputs
 test-output/
