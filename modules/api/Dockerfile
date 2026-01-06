@@ -12,7 +12,7 @@
 # 4. internal-dependencies - Internal modules (common, core) - changes on feature commits
 # 5. application         - API module code + resources - changes on every build
 
-FROM eclipse-temurin:17-jre-ubi10-minimal AS builder
+FROM eclipse-temurin:25-jre-ubi10-minimal AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ COPY target/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted
 
 # ─────────────────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-ubi10-minimal AS runtime
+FROM eclipse-temurin:25-jre-ubi10-minimal AS runtime
 
 # Build-time arguments for OCI labels
 ARG GIT_SHA="unknown"
