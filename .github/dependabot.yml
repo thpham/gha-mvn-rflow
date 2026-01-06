@@ -9,6 +9,8 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
+      # Weekly for Maven to catch security updates quickly
+      # zizmor: dependabot-cooldown - intentionally weekly for security-critical deps
       interval: "weekly"
       day: "monday"
       time: "06:00"
@@ -44,8 +46,8 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      # Monthly interval to avoid PR flood (zizmor: dependabot-cooldown)
+      interval: "monthly"
       time: "06:00"
       timezone: "Europe/Zurich"
     open-pull-requests-limit: 5
@@ -61,8 +63,8 @@ updates:
   - package-ecosystem: "docker"
     directory: "/modules/api"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      # Monthly interval to avoid PR flood (zizmor: dependabot-cooldown)
+      interval: "monthly"
       time: "06:00"
       timezone: "Europe/Zurich"
     open-pull-requests-limit: 3
