@@ -9,12 +9,14 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      # Weekly for Maven to catch security updates quickly
-      # zizmor: dependabot-cooldown - intentionally weekly for security-critical deps
       interval: "weekly"
       day: "monday"
       time: "06:00"
       timezone: "Europe/Zurich"
+    # Cooldown prevents updating to freshly released versions (supply chain security)
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -46,10 +48,13 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      # Monthly interval to avoid PR flood (zizmor: dependabot-cooldown)
-      interval: "monthly"
+      interval: "weekly"
+      day: "monday"
       time: "06:00"
       timezone: "Europe/Zurich"
+    # Cooldown prevents updating to freshly released versions (supply chain security)
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
@@ -63,10 +68,13 @@ updates:
   - package-ecosystem: "docker"
     directory: "/modules/api"
     schedule:
-      # Monthly interval to avoid PR flood (zizmor: dependabot-cooldown)
-      interval: "monthly"
+      interval: "weekly"
+      day: "monday"
       time: "06:00"
       timezone: "Europe/Zurich"
+    # Cooldown prevents updating to freshly released versions (supply chain security)
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
