@@ -27,11 +27,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           # Check if any images with pr-{N} tag pattern exist
           RESPONSE=$(gh api \
             -H "Accept: application/vnd.github+json" \
-            "/users/${{ github.repository_owner }}/packages/container/${{ github.event.repository.name }}%2F${{ env.IMAGE_NAME }}/versions" \
+            "/users/${REPO_OWNER}/packages/container/${REPO_NAME}%2F${{ env.IMAGE_NAME }}/versions" \
             --paginate 2>/dev/null || echo "[]")
 
           # Check if any tags match the PR pattern
