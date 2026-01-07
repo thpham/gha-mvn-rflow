@@ -3,8 +3,8 @@ name: Backport
 # Justification for pull_request_target: Required for backport action to have write permissions
 # to create branches and PRs. Risk is mitigated by:
 # 1. Only running on merged PRs from the same repository (not forks)
-# 2. Using persist-credentials: false on checkout
-# 3. The backport action doesn't execute untrusted PR code
+# 2. The backport action doesn't execute untrusted PR code
+# Note: persist-credentials must be true for the backport action to push branches
 on: # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     types: [closed]
@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           fetch-depth: 0
-          persist-credentials: false
+          # persist-credentials must be true for backport action to push branches
 
       - name: Backport Action
         # v3
