@@ -3,7 +3,8 @@
 #
 # After starting, access:
 #   - Grafana:      http://localhost:3000  (dashboards, traces, logs - admin/admin)
-#   - Prometheus:   http://localhost:9090  (metrics)
+#   - Mimir:        http://localhost:9009  (metrics storage, Prometheus-compatible)
+#   - Alloy:        http://localhost:12345 (OpenTelemetry collector, scrapes and forwards to Mimir)
 #   - Loki:         http://localhost:3100  (logs, query via Grafana)
 #   - Tempo:        http://localhost:3200  (traces, query via Grafana)
 #
@@ -42,20 +43,40 @@ services:
     networks:
       - observability
 
-  # Prometheus - Metrics collection
-  prometheus:
-    image: prom/prometheus:v2.50.1
-    container_name: prometheus
+  # Mimir - Scalable metrics storage (Grafana native, Prometheus-compatible)
+  mimir:
+    image: grafana/mimir:2.12.0
+    container_name: mimir
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.enable-remote-write-receiver'
+      - '-config.file=/etc/mimir/mimir.yml'
+      - '-target=all'
     ports:
-      - "9090:9090"
+      - "9009:9009"    # Mimir API (Prometheus-compatible)
+      - "9095:9095"    # gRPC
     volumes:
-      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/mimir.yml:/etc/mimir/mimir.yml:ro
+      - mimir-data:/data/mimir
     networks:
       - observability
+
+  # Alloy - OpenTelemetry collector (scrapes metrics, forwards to Mimir)
+  alloy:
+    image: grafana/alloy:v1.4.2
+    container_name: alloy
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+    ports:
+      - "12345:12345"  # Alloy UI
+    volumes:
+      - ./observability/alloy.config:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+    networks:
+      - observability
+    depends_on:
+      - mimir
 
   # Grafana - Visualization dashboards
   grafana:
@@ -73,7 +94,8 @@ services:
     networks:
       - observability
     depends_on:
-      - prometheus
+      - mimir
+      - alloy
       - tempo
       - loki
 
@@ -85,3 +107,5 @@ volumes:
   grafana-storage:
   loki-data:
   tempo-data:
+  mimir-data:
+  alloy-data:
