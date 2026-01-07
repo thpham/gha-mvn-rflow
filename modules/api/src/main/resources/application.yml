@@ -9,10 +9,81 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
+
+  # Metrics Configuration
+  metrics:
+    distribution:
+      # Enable histogram buckets for percentile calculations
+      percentiles-histogram:
+        http.server.requests: true
+      # Standard SLO buckets for latency monitoring
+      slo:
+        http.server.requests: 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2500ms, 5s, 10s
+    tags:
+      # Add application and environment labels to all metrics
+      application: ${spring.application.name}
+      namespace: ${NAMESPACE:local}
+
+  # OpenTelemetry Configuration (Spring Boot 4.0+)
+  # See: https://spring.io/blog/2025/11/18/opentelemetry-with-spring-boot
+  opentelemetry:
+    resource-attributes:
+      service.name: ${spring.application.name}
+      service.version: ${project.version:0.1.0-SNAPSHOT}
+      deployment.environment: ${DEPLOYMENT_ENV:local}
+    # Tracing export via OTLP
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+    # Logging export via OTLP (to Loki)
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_LOGS_ENDPOINT:http://localhost:3100/otlp/v1/logs}
+
+  # Tracing Configuration
+  tracing:
+    enabled: true
+    sampling:
+      # 100% sampling for demo; use 0.1 (10%) in production
+      probability: 1.0
+
+  # OTLP Metrics Export Configuration
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
+        step: 30s
+        enabled: ${OTEL_METRICS_EXPORT_ENABLED:false}
+
+# Pyroscope Profiling Configuration
+# Profiles are pushed to Pyroscope server for continuous profiling
+pyroscope:
+  agent:
+    enabled: ${PYROSCOPE_ENABLED:false}
+    application-name: ${spring.application.name}
+    server-address: ${PYROSCOPE_SERVER_ADDRESS:http://localhost:4040}
+    # Profile types: cpu, alloc, lock, wall
+    profiling-interval: 10ms
+    upload-interval: 15s
+    labels:
+      environment: ${DEPLOYMENT_ENV:local}
+      service_name: ${spring.application.name}
+
+# Logging configuration
+# Log export via OTLP is configured above in management.opentelemetry.logging.export.otlp.endpoint
+# The OpenTelemetry Logback appender is installed automatically when endpoint is configured
+logging:
+  level:
+    # Debug logging for tracing (demo only)
+    io.micrometer.tracing: ${TRACE_LOG_LEVEL:INFO}
+    io.opentelemetry: ${OTEL_LOG_LEVEL:INFO}
+    com.example.myproject: DEBUG
 
 springdoc:
   api-docs:

@@ -1,0 +1,69 @@
+# Mimir configuration for local development
+# Scalable, long-term storage for Prometheus metrics
+
+# Run in monolithic mode for local dev (all components in one process)
+target: all
+
+# Disable multi-tenancy for local development
+multitenancy_enabled: false
+
+# Server configuration
+server:
+  http_listen_port: 9090
+  grpc_listen_port: 9095
+  log_level: info
+
+# Blocks storage configuration
+blocks_storage:
+  backend: filesystem
+  bucket_store:
+    sync_dir: /data/mimir/tsdb-sync
+  filesystem:
+    dir: /data/mimir/data
+  tsdb:
+    dir: /data/mimir/tsdb
+
+# Compactor configuration
+compactor:
+  data_dir: /data/mimir/compactor
+  sharding_ring:
+    kvstore:
+      store: memberlist
+
+# Distributor configuration
+distributor:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: memberlist
+
+# Ingester configuration
+ingester:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: memberlist
+    replication_factor: 1
+
+# Store-gateway configuration
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+
+# Limits configuration
+limits:
+  # Allow ingestion from Prometheus
+  ingestion_rate: 50000
+  ingestion_burst_size: 100000
+  # Accept out-of-order samples (useful for Tempo metrics)
+  out_of_order_time_window: 30m
+
+# Ruler configuration (for recording rules and alerts)
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/mimir/rules
+
+# Activity tracker
+activity_tracker:
+  filepath: /data/mimir/activity.log

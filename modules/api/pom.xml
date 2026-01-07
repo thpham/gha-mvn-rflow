@@ -36,6 +36,35 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
+    <!-- Spring Boot OpenTelemetry Starter (Spring Boot 4.0+) -->
+    <!-- Includes: micrometer-tracing-bridge-otel, micrometer-registry-otlp, opentelemetry-exporter-otlp -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-opentelemetry</artifactId>
+    </dependency>
+
+    <!-- Prometheus Metrics Registry (exposes /actuator/prometheus endpoint) -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- OpenTelemetry Logback appender for log export via OTLP -->
+    <!-- Note: Uses alpha version as stable releases are not yet available -->
+    <!-- Compile scope needed for InstallOpenTelemetryAppender to reference OpenTelemetryAppender class -->
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+      <version>${opentelemetry-instrumentation.version}-alpha</version>
+    </dependency>
+
+    <!-- Pyroscope Java SDK for continuous profiling -->
+    <dependency>
+      <groupId>io.pyroscope</groupId>
+      <artifactId>agent</artifactId>
+      <version>${pyroscope.version}</version>
+    </dependency>
+
     <!-- API Documentation -->
     <dependency>
       <groupId>org.springdoc</groupId>

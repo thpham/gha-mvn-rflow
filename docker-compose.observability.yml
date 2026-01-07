@@ -1,0 +1,138 @@
+# Docker Compose for local observability testing
+# Usage: docker-compose -f docker-compose.observability.yml up -d
+#
+# After starting, access:
+#   - Grafana:      http://localhost:3000  (dashboards, traces, logs, profiles - admin/admin)
+#   - Mimir:        http://localhost:9090  (metrics storage, Prometheus-compatible)
+#   - Alloy:        http://localhost:12345 (OpenTelemetry collector, scrapes and forwards)
+#   - Loki:         http://localhost:3100  (logs, query via Grafana)
+#   - Tempo:        http://localhost:3200  (traces, query via Grafana)
+#   - Pyroscope:    http://localhost:4040  (continuous profiling, query via Grafana)
+#
+# Run the application with full observability enabled (Spring Boot 4.0+):
+#   PYROSCOPE_ENABLED=true mvn spring-boot:run -pl modules/api
+#
+# Observability endpoints are configured in application.yml:
+#   - Traces: http://localhost:4318/v1/traces (Tempo)
+#   - Logs:   http://localhost:3100/otlp/v1/logs (Loki)
+#   - Metrics: http://localhost:4318/v1/metrics (via Alloy to Mimir)
+
+services:
+  # Tempo - Distributed tracing backend (Grafana native)
+  tempo:
+    image: grafana/tempo:2.9.0
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    ports:
+      - "3200:3200" # Tempo API
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
+    networks:
+      - observability
+
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:3.5.9
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100" # Loki API and OTLP ingestion
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    networks:
+      - observability
+
+  # Pyroscope - Continuous profiling
+  pyroscope:
+    image: grafana/pyroscope:1.16.2
+    container_name: pyroscope
+    command:
+      - "server"
+      #- "-target=all"
+      #- "-server.http-listen-port=4040"
+      - "-log.level=debug"
+    ports:
+      - "4040:4040" # Pyroscope API
+    volumes:
+      - pyroscope-data:/data
+    networks:
+      - observability
+
+  # Mimir - Scalable metrics storage (Grafana native, Prometheus-compatible)
+  mimir:
+    image: grafana/mimir:3.0.2
+    container_name: mimir
+    command:
+      - "-config.file=/etc/mimir/mimir.yml"
+      - "-target=all"
+    ports:
+      - "9090:9090" # Mimir API (Prometheus-compatible)
+      - "9095:9095" # gRPC
+    volumes:
+      - ./observability/mimir.yml:/etc/mimir/mimir.yml:ro
+      - mimir-data:/data/mimir
+    networks:
+      - observability
+
+  # Alloy - OpenTelemetry collector (scrapes metrics, forwards to Mimir)
+  alloy:
+    image: grafana/alloy:v1.12.1
+    container_name: alloy
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+    ports:
+      - "12345:12345" # Alloy UI
+    volumes:
+      - ./observability/alloy.config:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+    networks:
+      - observability
+    depends_on:
+      - mimir
+
+  # Grafana - Visualization dashboards
+  grafana:
+    image: grafana/grafana:11.6
+    container_name: grafana
+    environment:
+      #- GF_SECURITY_ADMIN_USER=admin
+      #- GF_SECURITY_ADMIN_PASSWORD=admin
+      #- GF_USERS_ALLOW_SIGN_UP=false
+      # enable anonymous access | DO NOT USE IN PRODUCTION
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./observability/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./observability/grafana-dashboards:/etc/grafana/provisioning/dashboards/json:ro
+    networks:
+      - observability
+    depends_on:
+      - mimir
+      - alloy
+      - tempo
+      - loki
+      - pyroscope
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  grafana-storage:
+  loki-data:
+  tempo-data:
+  mimir-data:
+  alloy-data:
+  pyroscope-data:

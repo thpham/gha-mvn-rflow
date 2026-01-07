@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Include Spring Boot's default configuration for console logging -->
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <!-- OpenTelemetry appender for log export via OTLP -->
+    <!-- The appender is installed with Spring-managed OpenTelemetry by InstallOpenTelemetryAppender -->
+    <appender name="OpenTelemetry"
+              class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    </appender>
+
+    <!-- Root logger configuration -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="OpenTelemetry"/>
+    </root>
+
+    <!-- Reduce noise from framework loggers -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="io.micrometer" level="INFO"/>
+    <logger name="io.opentelemetry" level="INFO"/>
+
+    <!-- Application loggers -->
+    <logger name="com.example.myproject" level="DEBUG"/>
+</configuration>

@@ -63,6 +63,14 @@
     <testcontainers.version>2.0.3</testcontainers.version>
     <springmockk.version>5.0.1</springmockk.version>
 
+    <!-- OpenTelemetry -->
+    <opentelemetry.version>1.45.0</opentelemetry.version>
+    <opentelemetry-instrumentation.version>2.12.0</opentelemetry-instrumentation.version>
+
+    <!-- Profiling -->
+    <!-- v2.0.0+ required for JFR profiler support (works on macOS ARM64) -->
+    <pyroscope.version>2.1.2</pyroscope.version>
+
     <!-- Code Quality -->
     <sonar.organization>thpham</sonar.organization>
     <sonar.projectKey>thpham_gha-mvn-rflow</sonar.projectKey>
@@ -77,6 +85,22 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- OpenTelemetry BOM - MUST be declared BEFORE Spring Boot BOM -->
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry.instrumentation</groupId>
+        <artifactId>opentelemetry-instrumentation-bom</artifactId>
+        <version>${opentelemetry-instrumentation.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
       <!-- Spring Boot BOM -->
       <dependency>
         <groupId>org.springframework.boot</groupId>

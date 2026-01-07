@@ -15,6 +15,7 @@ A Kotlin Spring Boot multi-module project with automated release management usin
 - **Code quality analysis** via SonarQube (SonarCloud or self-hosted)
 - **Integration testing** support with Testcontainers
 - **API documentation** via OpenAPI/Swagger UI
+- **Full observability stack** with metrics, traces, logs, and continuous profiling
 
 ## Prerequisites
 
@@ -280,6 +281,71 @@ docker build -t myproject-api:local modules/api
 # Run locally
 docker run -p 8080:8080 myproject-api:local
 ```
+
+## Observability (Mandatory NFR)
+
+> **Observability is not optional.** It is a mandatory non-functional requirement (NFR) for any production-ready microservice. Without proper observability, diagnosing production incidents becomes guesswork, leading to longer resolution times and frustrated users.
+
+This project implements the **four pillars of observability** as a foundational requirement:
+
+| Pillar       | Tool      | Purpose                                            |
+| ------------ | --------- | -------------------------------------------------- |
+| **Metrics**  | Mimir     | Track system health, resource usage, and SLIs/SLOs |
+| **Traces**   | Tempo     | Follow requests across services, identify latency  |
+| **Logs**     | Loki      | Debug errors, audit actions, correlate with traces |
+| **Profiles** | Pyroscope | Find CPU/memory hotspots, optimize performance     |
+
+### Why Observability Matters
+
+When something goes wrong in production:
+
+- **Without observability**: "The service is slow" → Days of debugging, log grepping, and guessing
+- **With observability**: "The service is slow" → 5 minutes to identify the exact request, trace its path, see where time was spent, and view the CPU profile of the bottleneck
+
+**For developers**: Observability provides the data needed to understand system behavior, reproduce issues locally, and validate fixes before deployment.
+
+**For operations**: Observability enables rapid incident response, proactive alerting, and data-driven capacity planning.
+
+### Quick Start
+
+```bash
+# Start the observability stack
+docker-compose -f docker-compose.observability.yml up -d
+
+# Run the application with full observability (Spring Boot 4.0+)
+# Trace and log endpoints are auto-configured in application.yml
+PYROSCOPE_ENABLED=true mvn spring-boot:run -pl modules/api
+
+# Access Grafana dashboards
+open http://localhost:3000  # admin/admin
+```
+
+### Pre-configured Dashboards
+
+Five dashboards are auto-provisioned in Grafana:
+
+| Dashboard            | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
+| Application Overview | RED metrics (Rate, Errors, Duration) by endpoint |
+| JVM Performance      | Heap, GC, threads, CPU - per pod for K8s scaling |
+| Traces Explorer      | Service map, trace search, span analysis         |
+| Logs Explorer        | Log volume, error analysis, trace correlation    |
+| Continuous Profiling | CPU, memory, lock flame graphs                   |
+
+Dashboards support filtering by service and environment. When deployed to Kubernetes, additional labels (namespace, pod) are available for debugging horizontally scaled services.
+
+### Signal Correlation
+
+The stack is configured for **full signal correlation**:
+
+- Click a trace → see related logs and CPU profile
+- Click a log entry → jump to the trace
+- Click a metric data point → see the exemplar trace
+- Click a slow span → view the flame graph for that time range
+
+This correlation dramatically reduces mean time to resolution (MTTR) during incidents.
+
+> **Full documentation**: [docs/observability.md](docs/observability.md)
 
 ## API Documentation
 

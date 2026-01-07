@@ -1,0 +1,350 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Continuous profiling with Pyroscope for JVM services running on Kubernetes",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["observability"],
+      "targetBlank": false,
+      "title": "Dashboards",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "panels": [],
+      "title": "CPU Profiling",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "pyroscope"
+      },
+      "description": "CPU time spent in each function. Wider bars indicate more CPU time consumed.",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "colorScale": {
+          "mode": "value"
+        },
+        "downloadable": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "pyroscope"
+          },
+          "groupBy": ["service_name"],
+          "labelSelector": "{service_name=~\"$service\", environment=~\"$environment\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "profile",
+          "refId": "A",
+          "spanSelector": []
+        }
+      ],
+      "title": "CPU Flame Graph",
+      "type": "flamegraph"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 101,
+      "panels": [],
+      "title": "Memory Allocation Profiling",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "pyroscope"
+      },
+      "description": "Memory allocations by function. Helps identify memory-intensive operations.",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 10,
+      "options": {
+        "colorScale": {
+          "mode": "value"
+        },
+        "downloadable": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "pyroscope"
+          },
+          "groupBy": ["service_name"],
+          "labelSelector": "{service_name=~\"$service\", environment=~\"$environment\"}",
+          "profileTypeId": "memory:alloc_in_new_tlab_bytes:bytes:space:bytes",
+          "queryType": "profile",
+          "refId": "A",
+          "spanSelector": []
+        }
+      ],
+      "title": "Memory Allocation Flame Graph",
+      "type": "flamegraph"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 102,
+      "panels": [],
+      "title": "Lock Contention Profiling",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "pyroscope"
+      },
+      "description": "Time spent waiting on locks. Helps identify concurrency bottlenecks.",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 20,
+      "options": {
+        "colorScale": {
+          "mode": "value"
+        },
+        "downloadable": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "pyroscope"
+          },
+          "groupBy": ["service_name"],
+          "labelSelector": "{service_name=~\"$service\", environment=~\"$environment\"}",
+          "profileTypeId": "lock:contentions:count:lock:count",
+          "queryType": "profile",
+          "refId": "A",
+          "spanSelector": []
+        }
+      ],
+      "title": "Lock Contention Flame Graph",
+      "type": "flamegraph"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "id": 103,
+      "panels": [],
+      "title": "Profile Comparison",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "pyroscope"
+      },
+      "description": "Compare CPU profiles between two time ranges to identify performance regressions.",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 30,
+      "options": {
+        "colorScale": {
+          "mode": "diff"
+        },
+        "downloadable": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "pyroscope"
+          },
+          "groupBy": ["service_name"],
+          "labelSelector": "{service_name=~\"$service\", environment=~\"$environment\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "profile",
+          "refId": "A",
+          "spanSelector": []
+        }
+      ],
+      "title": "CPU Comparison (Diff Mode)",
+      "type": "flamegraph"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "id": 104,
+      "panels": [],
+      "title": "Profiling Tips",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "id": 40,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "## Flame Graph Reading Guide\n\n### How to Read Flame Graphs\n- **Width** = Percentage of total samples (wider = more time/memory spent)\n- **Vertical stack** = Call stack (callers above, callees below)\n- **Color** = Different packages/classes (helps distinguish code areas)\n\n### Common Patterns to Look For\n\n#### CPU Profiling\n- **Wide plateaus**: Functions consuming significant CPU time\n- **Tall stacks**: Deep call stacks that may indicate inefficient recursion\n- **Hot methods**: Look for serialization, parsing, or collection operations\n\n#### Memory Allocation\n- **String operations**: `StringBuilder`, string concatenation\n- **Collection growth**: `ArrayList.grow()`, `HashMap.resize()`\n- **Object creation**: `new` operations in loops\n\n#### Lock Contention\n- **Synchronized blocks**: Methods waiting on locks\n- **Database connections**: Connection pool contention\n- **Shared resources**: Logging, caching, thread pools\n\n### Tips for Optimization\n1. Focus on the **widest** bars first - biggest impact\n2. Compare profiles before/after changes using diff mode\n3. Use **trace correlation** to link profiles to specific requests\n4. Look for unexpected allocations in hot paths",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.6.0",
+      "title": "Understanding Flame Graphs",
+      "type": "text"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["observability", "profiling", "pyroscope", "kubernetes", "jvm"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "myproject-api",
+          "value": "myproject-api"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".+",
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": true,
+            "text": "myproject-api",
+            "value": "myproject-api"
+          }
+        ],
+        "query": "myproject-api",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "local",
+          "value": "local"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".+",
+        "label": "Environment",
+        "multi": false,
+        "name": "environment",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": true,
+            "text": "local",
+            "value": "local"
+          }
+        ],
+        "query": "local",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Continuous Profiling",
+  "uid": "continuous-profiling",
+  "version": 1,
+  "weekStart": ""
+}
