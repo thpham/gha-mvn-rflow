@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/thpham/gha-mvn-rflow/compare/myproject-v1.1.0...myproject-v1.2.0) (2026-01-07)
+
+
+### Features
+
+* **ci:** auto-create release branches after releases from main ([8e51ef5](https://github.com/thpham/gha-mvn-rflow/commit/8e51ef563668dcf49fcea0582584d2999666f09e))
+* **ci:** auto-merge SNAPSHOT bump PRs after release ([f05fa3b](https://github.com/thpham/gha-mvn-rflow/commit/f05fa3b0e07d7677c1f431269e7fbffdbf5085f1))
+
 ## [1.1.0](https://github.com/thpham/gha-mvn-rflow/compare/myproject-v1.0.0...myproject-v1.1.0) (2026-01-07)
 
 
