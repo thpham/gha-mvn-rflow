@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.1.0...v1.2.0) (2026-01-07)
+
+
+### Features
+
+* **ci:** auto-merge SNAPSHOT bump PRs after release ([7c04cac](https://github.com/thpham/gha-mvn-rflow/commit/7c04cac306c450bfce766b81ce49601775eb6f91))
+
+
+### Bug Fixes
+
+* **api:** validate delayMs parameter in chaos endpoint ([#35](https://github.com/thpham/gha-mvn-rflow/issues/35)) ([#36](https://github.com/thpham/gha-mvn-rflow/issues/36)) ([84b597a](https://github.com/thpham/gha-mvn-rflow/commit/84b597aba026b1c0e3fae815f39602fc0fa69d9f))
+* **ci:** add target-branch to release-please for patch releases ([c8cdb7d](https://github.com/thpham/gha-mvn-rflow/commit/c8cdb7da865a38e22d3fe532c85a9b75fa542692))
+
 ## [1.1.0](https://github.com/thpham/gha-mvn-rflow/compare/myproject-v1.0.0...myproject-v1.1.0) (2026-01-07)
 
 
