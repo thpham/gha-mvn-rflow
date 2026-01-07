@@ -2,6 +2,10 @@ spring:
   application:
     name: myproject-api
 
+# Project version injected from Maven via resource filtering
+project:
+  version: "@project.version@"
+
 server:
   port: 8080
 
