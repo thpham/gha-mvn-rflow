@@ -71,6 +71,15 @@ class HealthController(
     ): ApiResponse<Map<String, Any>> {
         logger.info("Chaos endpoint called with errorRate={}, delayMs={}", errorRate, delayMs)
 
+        // Validate input parameters
+        if (delayMs < 0) {
+            logger.warn("Invalid delayMs parameter: {}", delayMs)
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "delayMs must be non-negative",
+            )
+        }
+
         // Optional artificial delay for latency testing
         if (delayMs > 0) {
             logger.debug("Applying artificial delay of {}ms", delayMs)
