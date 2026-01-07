@@ -44,7 +44,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Parse the PR JSON to get PR numbers and check for snapshot label
-          echo '${{ steps.release.outputs.prs }}' | jq -r '.[] | select(.labels[] | .name == "autorelease: snapshot") | .number' | while read -r pr_number; do
+          # Note: release-please outputs labels as string array, not objects
+          echo '${{ steps.release.outputs.prs }}' | jq -r '.[] | select(.labels[] == "autorelease: snapshot") | .number' | while read -r pr_number; do
             if [[ -n "${pr_number}" ]]; then
               echo "Enabling auto-merge for SNAPSHOT PR #${pr_number}"
               gh pr merge "${pr_number}" --auto --squash --repo "${{ github.repository }}"
