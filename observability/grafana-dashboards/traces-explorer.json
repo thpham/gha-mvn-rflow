@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Distributed tracing explorer for services running on Kubernetes",
+  "description": "Distributed tracing explorer using Tempo and TraceQL",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -825,7 +825,7 @@
           "limit": 20,
           "queryType": "serviceMap",
           "refId": "A",
-          "serviceMapQuery": "{resource.service.name=~\"$service\"}"
+          "serviceMapQuery": "{}"
         }
       ],
       "title": "Service Map",
@@ -873,35 +873,10 @@
             "type": "tempo",
             "uid": "tempo"
           },
-          "filters": [
-            {
-              "id": "service-name",
-              "operator": "=~",
-              "scope": "resource",
-              "tag": "service.name",
-              "value": ["$service"],
-              "valueType": "string"
-            },
-            {
-              "id": "min-duration",
-              "operator": ">",
-              "scope": "span",
-              "tag": "duration",
-              "value": ["$min_duration"],
-              "valueType": "duration"
-            },
-            {
-              "id": "status",
-              "operator": "=",
-              "scope": "span",
-              "tag": "status",
-              "value": ["$status"],
-              "valueType": "string"
-            }
-          ],
           "limit": 50,
-          "queryType": "traceqlSearch",
+          "queryType": "traceql",
           "refId": "A",
+          "query": "{resource.service.name=~\"$service\" && duration > $min_duration}",
           "tableType": "traces"
         }
       ],
@@ -911,7 +886,7 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["observability", "tracing", "tempo", "kubernetes"],
+  "tags": ["observability", "tracing", "tempo"],
   "templating": {
     "list": [
       {
@@ -940,9 +915,9 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "100ms",
-          "value": "100ms"
+          "selected": true,
+          "text": "0ms",
+          "value": "0ms"
         },
         "hide": 0,
         "includeAll": false,
@@ -951,7 +926,7 @@
         "name": "min_duration",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "0ms",
             "value": "0ms"
           },
@@ -966,7 +941,7 @@
             "value": "50ms"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "100ms",
             "value": "100ms"
           },
@@ -987,39 +962,6 @@
           }
         ],
         "query": "0ms,10ms,50ms,100ms,500ms,1s,5s",
-        "queryValue": "",
-        "skipUrlSync": false,
-        "type": "custom"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": ""
-        },
-        "hide": 0,
-        "includeAll": false,
-        "label": "Status",
-        "multi": false,
-        "name": "status",
-        "options": [
-          {
-            "selected": true,
-            "text": "All",
-            "value": ""
-          },
-          {
-            "selected": false,
-            "text": "Error",
-            "value": "error"
-          },
-          {
-            "selected": false,
-            "text": "OK",
-            "value": "ok"
-          }
-        ],
-        "query": "All : ,Error : error,OK : ok",
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"

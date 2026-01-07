@@ -13,6 +13,7 @@ management:
   endpoint:
     health:
       show-details: always
+
   # Metrics Configuration
   metrics:
     distribution:
@@ -27,12 +28,23 @@ management:
       application: ${spring.application.name}
       namespace: ${NAMESPACE:local}
 
-  # OpenTelemetry Resource Attributes
+  # OpenTelemetry Configuration (Spring Boot 4.0+)
+  # See: https://spring.io/blog/2025/11/18/opentelemetry-with-spring-boot
   opentelemetry:
     resource-attributes:
       service.name: ${spring.application.name}
       service.version: ${project.version:0.1.0-SNAPSHOT}
       deployment.environment: ${DEPLOYMENT_ENV:local}
+    # Tracing export via OTLP
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+    # Logging export via OTLP (to Loki)
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_LOGS_ENDPOINT:http://localhost:3100/otlp/v1/logs}
 
   # Tracing Configuration
   tracing:
@@ -41,20 +53,13 @@ management:
       # 100% sampling for demo; use 0.1 (10%) in production
       probability: 1.0
 
-  # OTLP Export Configuration
+  # OTLP Metrics Export Configuration
   otlp:
-    tracing:
-      # Endpoint for OTLP collector (e.g., Jaeger, Tempo, or OTel Collector)
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
     metrics:
       export:
-        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
+        url: ${OTEL_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
         step: 30s
         enabled: ${OTEL_METRICS_EXPORT_ENABLED:false}
-    logs:
-      export:
-        # Endpoint for OTLP log export (e.g., Loki via OTel Collector)
-        endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:4318/v1/logs}
 
 # Pyroscope Profiling Configuration
 # Profiles are pushed to Pyroscope server for continuous profiling
@@ -71,11 +76,8 @@ pyroscope:
       service: ${spring.application.name}
 
 # Logging configuration
-# Note: Log pattern and OTEL export defined in logback-spring.xml
-# The OpenTelemetry SDK autoconfigure reads these environment variables for log export:
-#   OTEL_LOGS_EXPORTER=otlp (default is 'none', must be set to enable)
-#   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs (Loki OTLP endpoint)
-#   OTEL_SERVICE_NAME=${spring.application.name}
+# Log export via OTLP is configured above in management.opentelemetry.logging.export.otlp.endpoint
+# The OpenTelemetry Logback appender is installed automatically when endpoint is configured
 logging:
   level:
     # Debug logging for tracing (demo only)

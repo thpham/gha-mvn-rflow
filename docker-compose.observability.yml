@@ -9,11 +9,13 @@
 #   - Tempo:        http://localhost:3200  (traces, query via Grafana)
 #   - Pyroscope:    http://localhost:4040  (continuous profiling, query via Grafana)
 #
-# Run the application with OTLP export enabled:
-#   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
-#   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs \
-#   OTEL_METRICS_EXPORT_ENABLED=true \
-#   mvn spring-boot:run -pl modules/api
+# Run the application with full observability enabled (Spring Boot 4.0+):
+#   PYROSCOPE_ENABLED=true mvn spring-boot:run -pl modules/api
+#
+# Observability endpoints are configured in application.yml:
+#   - Traces: http://localhost:4318/v1/traces (Tempo)
+#   - Logs:   http://localhost:3100/otlp/v1/logs (Loki)
+#   - Metrics: http://localhost:4318/v1/metrics (via Alloy to Mimir)
 
 services:
   # Tempo - Distributed tracing backend (Grafana native)

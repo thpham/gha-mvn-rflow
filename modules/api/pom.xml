@@ -36,22 +36,11 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
-    <!-- OpenTelemetry Tracing via Micrometer Bridge -->
+    <!-- Spring Boot OpenTelemetry Starter (Spring Boot 4.0+) -->
+    <!-- Includes: micrometer-tracing-bridge-otel, micrometer-registry-otlp, opentelemetry-exporter-otlp -->
     <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-tracing-bridge-otel</artifactId>
-    </dependency>
-
-    <!-- OTLP Exporter for Traces -->
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-exporter-otlp</artifactId>
-    </dependency>
-
-    <!-- OTLP Exporter for Metrics (via Micrometer) -->
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-otlp</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-opentelemetry</artifactId>
     </dependency>
 
     <!-- Prometheus Metrics Registry (exposes /actuator/prometheus endpoint) -->
@@ -60,31 +49,13 @@
       <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
 
-    <!-- Console/Logging exporter for demo/debugging -->
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-exporter-logging</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-
     <!-- OpenTelemetry Logback appender for log export via OTLP -->
     <!-- Note: Uses alpha version as stable releases are not yet available -->
+    <!-- Compile scope needed for InstallOpenTelemetryAppender to reference OpenTelemetryAppender class -->
     <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-logback-appender-1.0</artifactId>
       <version>${opentelemetry-instrumentation.version}-alpha</version>
-      <scope>runtime</scope>
-    </dependency>
-
-    <!-- OpenTelemetry SDK autoconfigure for OTLP log export -->
-    <!-- Required to initialize the OTel SDK with log exporter for the logback appender -->
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk-extension-autoconfigure-spi</artifactId>
     </dependency>
 
     <!-- Pyroscope Java SDK for continuous profiling -->

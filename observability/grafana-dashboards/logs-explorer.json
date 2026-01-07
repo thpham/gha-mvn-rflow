@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Log exploration and analysis for services running on Kubernetes with trace correlation",
+  "description": "Log exploration and analysis for services with OpenTelemetry trace correlation",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -99,7 +99,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
+          "expr": "sum(count_over_time({service_name=~\".+\"} | service_name=~\"$service\" [$__interval]))",
           "legendFormat": "Total Logs",
           "queryType": "range",
           "refId": "A"
@@ -167,7 +167,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=~\".+\"} |= \"ERROR\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
+          "expr": "sum(count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | severity_text=\"ERROR\" [$__interval]))",
           "legendFormat": "Errors",
           "queryType": "range",
           "refId": "A"
@@ -235,7 +235,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=~\".+\"} |= \"WARN\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
+          "expr": "sum(count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | severity_text=\"WARN\" [$__interval]))",
           "legendFormat": "Warnings",
           "queryType": "range",
           "refId": "A"
@@ -281,7 +281,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": ["count"],
           "fields": "",
           "values": false
         },
@@ -295,8 +295,8 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "count(count by (service_name) (count_over_time({service_name=~\".+\"}[$__interval])))",
-          "legendFormat": "Services",
+          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"}[$__range]))",
+          "legendFormat": "{{service_name}}",
           "queryType": "instant",
           "refId": "A"
         }
@@ -341,7 +341,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": ["count"],
           "fields": "",
           "values": false
         },
@@ -355,13 +355,13 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "count(count by (pod) (count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\".+\"}[$__interval])))",
-          "legendFormat": "Pods",
+          "expr": "sum by (deployment_environment) (count_over_time({service_name=~\".+\"}[$__range]))",
+          "legendFormat": "{{deployment_environment}}",
           "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "Active Pods",
+      "title": "Active Environments",
       "type": "stat"
     },
     {
@@ -415,7 +415,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(bytes_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
+          "expr": "sum(bytes_over_time({service_name=~\".+\"} | service_name=~\"$service\" [$__interval]))",
           "legendFormat": "Log Volume",
           "queryType": "range",
           "refId": "A"
@@ -494,8 +494,8 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": ".*ERROR.*"
+              "id": "byName",
+              "options": "ERROR"
             },
             "properties": [
               {
@@ -509,8 +509,8 @@
           },
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": ".*WARN.*"
+              "id": "byName",
+              "options": "WARN"
             },
             "properties": [
               {
@@ -524,8 +524,8 @@
           },
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": ".*INFO.*"
+              "id": "byName",
+              "options": "INFO"
             },
             "properties": [
               {
@@ -539,8 +539,8 @@
           },
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": ".*DEBUG.*"
+              "id": "byName",
+              "options": "DEBUG"
             },
             "properties": [
               {
@@ -580,8 +580,8 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (level) (count_over_time({service_name=~\".+\"} | json | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" | level=~\"$level\" [$__interval]))",
-          "legendFormat": "{{level}}",
+          "expr": "sum by (severity_text) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | severity_text=~\"$level\" [$__interval]))",
+          "legendFormat": "{{severity_text}}",
           "queryType": "range",
           "refId": "A"
         }
@@ -671,7 +671,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
+          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" [$__interval]))",
           "legendFormat": "{{service_name}}",
           "queryType": "range",
           "refId": "A"
@@ -762,13 +762,13 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
-          "legendFormat": "{{pod}}",
+          "expr": "sum by (scope_name) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" [$__interval]))",
+          "legendFormat": "{{scope_name}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Log Volume by Pod",
+      "title": "Log Volume by Logger",
       "type": "timeseries"
     },
     {
@@ -866,7 +866,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"} |= \"ERROR\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
+          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | severity_text=\"ERROR\" [$__interval]))",
           "legendFormat": "{{service_name}}",
           "queryType": "range",
           "refId": "A"
@@ -957,13 +957,13 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (count_over_time({service_name=~\".+\"} |= \"ERROR\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
-          "legendFormat": "{{pod}}",
+          "expr": "sum by (scope_name) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | severity_text=\"ERROR\" [$__interval]))",
+          "legendFormat": "{{scope_name}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Errors by Pod",
+      "title": "Errors by Logger",
       "type": "timeseries"
     },
     {
@@ -994,9 +994,9 @@
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
-        "prettifyLogMessage": true,
+        "prettifyLogMessage": false,
         "showCommonLabels": false,
-        "showLabels": true,
+        "showLabels": false,
         "showTime": true,
         "sortOrder": "Descending",
         "wrapLogMessage": true
@@ -1009,7 +1009,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\".+\"} | json | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" | level=~\"$level\" | line_format \"{{.level}} [{{.traceId}}] {{.logger}}: {{.message}}\"",
+          "expr": "{service_name=~\".+\"} | service_name=~\"$service\" | severity_text=~\"$level\" | line_format \"[{{.deployment_environment}}] [{{.severity_text}}] [{{.service_name}}] [{{.scope_name}}] {{__line__}}\"",
           "legendFormat": "",
           "queryType": "range",
           "refId": "A"
@@ -1043,9 +1043,9 @@
           "options": {
             "dedupStrategy": "none",
             "enableLogDetails": true,
-            "prettifyLogMessage": true,
+            "prettifyLogMessage": false,
             "showCommonLabels": false,
-            "showLabels": true,
+            "showLabels": false,
             "showTime": true,
             "sortOrder": "Descending",
             "wrapLogMessage": true
@@ -1058,7 +1058,7 @@
                 "uid": "loki"
               },
               "editorMode": "code",
-              "expr": "{service_name=~\".+\"} |= \"$search\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\"",
+              "expr": "{service_name=~\".+\"} |= \"$search\" | service_name=~\"$service\" | line_format \"[{{.deployment_environment}}] [{{.severity_text}}] [{{.service_name}}] [{{.scope_name}}] {{__line__}}\"",
               "legendFormat": "",
               "queryType": "range",
               "refId": "A"
@@ -1096,9 +1096,9 @@
           "options": {
             "dedupStrategy": "none",
             "enableLogDetails": true,
-            "prettifyLogMessage": true,
+            "prettifyLogMessage": false,
             "showCommonLabels": false,
-            "showLabels": true,
+            "showLabels": false,
             "showTime": true,
             "sortOrder": "Descending",
             "wrapLogMessage": true
@@ -1111,7 +1111,7 @@
                 "uid": "loki"
               },
               "editorMode": "code",
-              "expr": "{service_name=~\".+\"} | json | traceId=~\"$traceId\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\"",
+              "expr": "{service_name=~\".+\"} | trace_id=~\"$traceId\" | service_name=~\"$service\" | line_format \"[{{.deployment_environment}}] [{{.severity_text}}] [{{.service_name}}] [{{.scope_name}}] {{__line__}}\"",
               "legendFormat": "",
               "queryType": "range",
               "refId": "A"
@@ -1127,34 +1127,9 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["observability", "logs", "loki", "kubernetes"],
+  "tags": ["observability", "logs", "loki", "opentelemetry"],
   "templating": {
     "list": [
-      {
-        "current": {},
-        "datasource": {
-          "type": "loki",
-          "uid": "loki"
-        },
-        "definition": "",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Namespace",
-        "multi": false,
-        "name": "namespace",
-        "options": [],
-        "query": {
-          "label": "namespace",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{service_name=~\".+\"}",
-          "type": 1
-        },
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      },
       {
         "current": {},
         "datasource": {
@@ -1170,31 +1145,6 @@
         "options": [],
         "query": {
           "label": "service_name",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{service_name=~\".+\"}",
-          "type": 1
-        },
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "loki",
-          "uid": "loki"
-        },
-        "definition": "",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Pod",
-        "multi": true,
-        "name": "pod",
-        "options": [],
-        "query": {
-          "label": "pod",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "{service_name=~\".+\"}",
           "type": 1

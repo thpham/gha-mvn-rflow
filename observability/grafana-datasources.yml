@@ -31,8 +31,12 @@ datasources:
         datasourceUid: loki
         spanStartTimeShift: '-1h'
         spanEndTimeShift: '1h'
-        filterByTraceID: true
+        # For OTLP logs, trace_id is stored as structured metadata
+        # Use custom query to filter by trace_id in structured metadata
+        filterByTraceID: false
         filterBySpanID: false
+        customQuery: true
+        query: '{$${__tags}} | trace_id=`$${__span.traceId}`'
         tags:
           - key: service.name
             value: service_name
@@ -74,8 +78,9 @@ datasources:
     editable: false
     jsonData:
       derivedFields:
-        # Link logs to traces via traceId in JSON format (structured logs)
+        # Link logs to traces via trace_id label (OTLP logs store trace_id as a label)
         - datasourceUid: tempo
-          matcherRegex: '"traceId":"([a-f0-9]+)"'
+          matcherType: label
+          matcherRegex: trace_id
           name: TraceID
           url: '$${__value.raw}'

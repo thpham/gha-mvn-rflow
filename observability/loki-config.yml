@@ -7,6 +7,15 @@ server:
   http_listen_port: 3100
   grpc_listen_port: 9096
 
+# Enable OTLP HTTP endpoint at /otlp/v1/logs
+# Configure which resource attributes become index labels (for querying)
+distributor:
+  otlp_config:
+    default_resource_attributes_as_index_labels:
+      - service.name
+      - service.namespace
+      - deployment.environment
+
 common:
   instance_addr: 127.0.0.1
   path_prefix: /loki
@@ -43,6 +52,10 @@ ruler:
 limits_config:
   allow_structured_metadata: true
   volume_enabled: true
+  # Accept out-of-order log writes (logs may arrive after their true creation time)
+  # This ensures logs are stored with their original timestamp, not ingestion time
+  reject_old_samples: false
+  reject_old_samples_max_age: 168h  # Accept logs up to 7 days old
   otlp_config:
     resource_attributes:
       attributes_config:
@@ -51,3 +64,10 @@ limits_config:
             - service.name
             - service.version
             - deployment.environment
+    # Store trace context as structured metadata for trace-to-logs correlation
+    # Note: log_attributes only supports structured_metadata or drop, not index_label
+    log_attributes:
+      - action: structured_metadata
+        attributes:
+          - trace_id
+          - span_id

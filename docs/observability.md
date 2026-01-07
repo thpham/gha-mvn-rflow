@@ -29,8 +29,8 @@ This document describes the observability stack implemented for the Spring Boot 
     └────┬─────┘          │           └────┬─────┘               │
          │                │                │                     │
          └────────────────┴────────────────┴─────────────────────┘
-                                   │
-                                   ▼
+                                  │
+                                  ▼
                             ┌───────────┐
                             │  Grafana  │
                             │(Visualize)│
@@ -80,15 +80,11 @@ docker-compose -f docker-compose.observability.yml up -d
 
 ```bash
 # Full observability (traces, logs, metrics, profiles)
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
-OTEL_LOGS_EXPORTER=otlp \
-OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs \
-OTEL_SERVICE_NAME=myproject-api \
-OTEL_METRICS_EXPORT_ENABLED=true \
-PYROSCOPE_ENABLED=true \
-PYROSCOPE_SERVER_ADDRESS=http://localhost:4040 \
-mvn spring-boot:run -pl modules/api
+# Default endpoints are configured in application.yml for local development
+PYROSCOPE_ENABLED=true mvn spring-boot:run -pl modules/api
 ```
+
+> **Note**: Spring Boot 4.0+ uses the native `spring-boot-starter-opentelemetry` which auto-configures the OpenTelemetry SDK. Trace and log export endpoints are configured via `management.opentelemetry.*` properties in `application.yml`. See [OpenTelemetry with Spring Boot](https://spring.io/blog/2025/11/18/opentelemetry-with-spring-boot) for details.
 
 ### 4. Generate Traffic
 
@@ -130,38 +126,62 @@ Navigate to http://localhost:3000 and explore the pre-configured dashboards in t
 
 ### Environment Variables
 
-| Variable                           | Default                              | Description                         |
-| ---------------------------------- | ------------------------------------ | ----------------------------------- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`      | `http://localhost:4318/v1/traces`    | Tempo OTLP HTTP endpoint            |
-| `OTEL_LOGS_EXPORTER`               | `none`                               | Set to `otlp` to enable log export  |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | `http://localhost:3100/otlp/v1/logs` | Loki OTLP endpoint                  |
-| `OTEL_SERVICE_NAME`                | `${spring.application.name}`         | Service name for OTEL SDK           |
-| `OTEL_METRICS_EXPORT_ENABLED`      | `false`                              | Enable OTLP metrics export          |
-| `PYROSCOPE_ENABLED`                | `false`                              | Enable continuous profiling         |
-| `PYROSCOPE_SERVER_ADDRESS`         | `http://localhost:4040`              | Pyroscope server URL                |
-| `DEPLOYMENT_ENV`                   | `local`                              | Environment label for all telemetry |
-| `TRACE_LOG_LEVEL`                  | `INFO`                               | Log level for tracing libraries     |
-| `OTEL_LOG_LEVEL`                   | `INFO`                               | Log level for OpenTelemetry         |
+| Variable                   | Default                              | Description                         |
+| -------------------------- | ------------------------------------ | ----------------------------------- |
+| `OTEL_TRACES_ENDPOINT`     | `http://localhost:4318/v1/traces`    | Tempo OTLP HTTP endpoint (override) |
+| `OTEL_LOGS_ENDPOINT`       | `http://localhost:3100/otlp/v1/logs` | Loki OTLP endpoint (override)       |
+| `PYROSCOPE_ENABLED`        | `false`                              | Enable continuous profiling         |
+| `PYROSCOPE_SERVER_ADDRESS` | `http://localhost:4040`              | Pyroscope server URL                |
+| `DEPLOYMENT_ENV`           | `local`                              | Environment label for all telemetry |
+| `TRACE_LOG_LEVEL`          | `INFO`                               | Log level for tracing libraries     |
+| `OTEL_LOG_LEVEL`           | `INFO`                               | Log level for OpenTelemetry         |
+
+> **Spring Boot 4.0+ Note**: OpenTelemetry is configured via `management.opentelemetry.*` properties rather than `OTEL_*` environment variables. The environment variables above are mapped to Spring properties in `application.yml`.
 
 ### Application Configuration
 
-Key configuration in `application.yml`:
+Key configuration in `application.yml` (Spring Boot 4.0+ pattern):
 
 ```yaml
 management:
+  # OpenTelemetry Configuration (Spring Boot 4.0+)
+  opentelemetry:
+    resource-attributes:
+      service.name: ${spring.application.name}
+      service.version: ${project.version:0.1.0-SNAPSHOT}
+      deployment.environment: ${DEPLOYMENT_ENV:local}
+    # Tracing export via OTLP
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+    # Logging export via OTLP (to Loki)
+    logging:
+      export:
+        otlp:
+          endpoint: ${OTEL_LOGS_ENDPOINT:http://localhost:3100/otlp/v1/logs}
+
+  # Tracing Configuration
   tracing:
     enabled: true
     sampling:
       probability: 1.0 # 100% sampling (use 0.1 in production)
-  otlp:
-    tracing:
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
 
 pyroscope:
   agent:
     enabled: ${PYROSCOPE_ENABLED:false}
     application-name: ${spring.application.name}
     server-address: ${PYROSCOPE_SERVER_ADDRESS:http://localhost:4040}
+```
+
+The `OpenTelemetryConfig.kt` class installs the Logback OTLP appender with the Spring-managed OpenTelemetry instance:
+
+```kotlin
+@Bean
+@ConditionalOnProperty(name = ["management.opentelemetry.logging.export.otlp.endpoint"])
+fun installOpenTelemetryAppender(openTelemetry: OpenTelemetry): InstallOpenTelemetryAppender {
+    return InstallOpenTelemetryAppender(openTelemetry)
+}
 ```
 
 ## Grafana Dashboards
@@ -230,19 +250,21 @@ histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{..., uri=~
 
 ### 4. Logs Explorer
 
-**Purpose**: Log aggregation and analysis using Loki
+**Purpose**: Log aggregation and analysis using Loki via OTLP
 
 **Key Panels**:
 
 - Log volume statistics (total, errors, warnings)
-- Log volume by level (color-coded)
-- Log volume by service and pod
-- Error analysis by service and pod
+- Log volume by severity level (color-coded)
+- Log volume by logger (`scope_name`)
+- Active environments tracking
 - Live log stream with trace ID correlation
 - Search panel with text filter
 - Trace correlation panel
 
-**Variables**: Namespace, Service, Pod, Level, Search, Trace ID
+**Variables**: Service, Level, Search, Trace ID
+
+> **OTLP Log Format**: Logs ingested via OTLP use structured fields like `severity_text` (ERROR, WARN, INFO), `scope_name` (logger name), `service_name`, and `trace_id` rather than text patterns or Kubernetes labels.
 
 ### 5. Continuous Profiling
 
@@ -356,8 +378,10 @@ For production, deploy Mimir, Loki, and Tempo in clustered mode:
 ### No Logs in Loki
 
 1. Check Loki health: `curl http://localhost:3100/ready`
-2. Verify OTLP logs endpoint: `curl http://localhost:3100/otlp/v1/logs`
-3. Check `logback-spring.xml` for OTLP appender configuration
+2. Verify OTLP logs endpoint is enabled in `loki-config.yml` (`distributor.otlp_config`)
+3. Check `logback-spring.xml` includes the OpenTelemetry appender
+4. Verify `management.opentelemetry.logging.export.otlp.endpoint` is set in `application.yml`
+5. Check application logs for "Installing OpenTelemetry Logback appender" message
 
 ### No Profiles in Pyroscope
 
@@ -390,18 +414,22 @@ observability/
 
 modules/api/src/main/
 ├── kotlin/.../config/
-│   └── PyroscopeConfig.kt    # Pyroscope SDK initialization
+│   ├── OpenTelemetryConfig.kt  # OTLP log appender installation
+│   └── PyroscopeConfig.kt      # Pyroscope SDK initialization
 └── resources/
-    ├── application.yml       # Observability configuration
-    └── logback-spring.xml    # Logging with OTLP export
+    ├── application.yml         # Observability configuration
+    └── logback-spring.xml      # Logging with OTLP appender
 ```
 
 ## References
 
+- [OpenTelemetry with Spring Boot 4.0](https://spring.io/blog/2025/11/18/opentelemetry-with-spring-boot) - Official Spring Boot blog post
+- [Spring Boot OpenTelemetry Sample](https://github.com/mhalbritter/spring-boot-and-opentelemetry) - Reference implementation
 - [Grafana Documentation](https://grafana.com/docs/)
 - [Mimir Documentation](https://grafana.com/docs/mimir/latest/)
 - [Tempo Documentation](https://grafana.com/docs/tempo/latest/)
 - [Loki Documentation](https://grafana.com/docs/loki/latest/)
+- [Loki OTLP Ingestion](https://grafana.com/docs/loki/latest/send-data/otel/) - Configure OTLP log ingestion
 - [Pyroscope Documentation](https://grafana.com/docs/pyroscope/latest/)
 - [Spring Boot Observability](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.observability)
 - [Micrometer Tracing](https://micrometer.io/docs/tracing)

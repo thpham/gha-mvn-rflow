@@ -312,13 +312,9 @@ When something goes wrong in production:
 # Start the observability stack
 docker-compose -f docker-compose.observability.yml up -d
 
-# Run the application with full observability
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
-OTEL_LOGS_EXPORTER=otlp \
-OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs \
-OTEL_SERVICE_NAME=myproject-api \
-PYROSCOPE_ENABLED=true \
-mvn spring-boot:run -pl modules/api
+# Run the application with full observability (Spring Boot 4.0+)
+# Trace and log endpoints are auto-configured in application.yml
+PYROSCOPE_ENABLED=true mvn spring-boot:run -pl modules/api
 
 # Access Grafana dashboards
 open http://localhost:3000  # admin/admin
@@ -336,7 +332,7 @@ Five dashboards are auto-provisioned in Grafana:
 | Logs Explorer        | Log volume, error analysis, trace correlation    |
 | Continuous Profiling | CPU, memory, lock flame graphs                   |
 
-All dashboards support **Kubernetes-aware filtering** by namespace, service, and pod - essential for debugging horizontally scaled services where you need to identify which specific pod is misbehaving.
+Dashboards support filtering by service and environment. When deployed to Kubernetes, additional labels (namespace, pod) are available for debugging horizontally scaled services.
 
 ### Signal Correlation
 

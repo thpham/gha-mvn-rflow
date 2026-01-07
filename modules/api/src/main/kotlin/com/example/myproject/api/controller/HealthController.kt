@@ -5,6 +5,7 @@ import com.example.myproject.common.Constants
 import com.example.myproject.core.service.HealthService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,9 +23,16 @@ import kotlin.random.Random
 class HealthController(
     private val healthService: HealthService,
 ) {
+    private val logger = LoggerFactory.getLogger(HealthController::class.java)
+
     @GetMapping("/health")
     @Operation(summary = "Get health status", description = "Returns the current health status of the application")
-    fun health(): ApiResponse<Map<String, Any>> = ApiResponse.success(healthService.getHealthDetails())
+    fun health(): ApiResponse<Map<String, Any>> {
+        logger.info("Health check requested")
+        val details = healthService.getHealthDetails()
+        logger.info("Health check completed with status: {}", details["status"])
+        return ApiResponse.success(details)
+    }
 
     @GetMapping("/info")
     @Operation(summary = "Get application info", description = "Returns application information")
@@ -45,19 +53,24 @@ class HealthController(
         @RequestParam(defaultValue = "20") errorRate: Int,
         @RequestParam(defaultValue = "0") delayMs: Long,
     ): ApiResponse<Map<String, Any>> {
+        logger.info("Chaos endpoint called with errorRate={}, delayMs={}", errorRate, delayMs)
+
         // Optional artificial delay for latency testing
         if (delayMs > 0) {
+            logger.debug("Applying artificial delay of {}ms", delayMs)
             Thread.sleep(delayMs.coerceAtMost(5000)) // Cap at 5 seconds
         }
 
         // Random failure based on errorRate percentage
         if (Random.nextInt(100) < errorRate.coerceIn(0, 100)) {
+            logger.error("Simulated error triggered (errorRate={}%)", errorRate)
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Simulated server error for observability testing",
             )
         }
 
+        logger.info("Chaos endpoint completed successfully")
         return ApiResponse.success(
             mapOf(
                 "status" to "ok",
