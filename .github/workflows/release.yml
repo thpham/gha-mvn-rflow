@@ -32,36 +32,50 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Determine versioning strategy based on branch type:
+      # Inject versioning strategy and bootstrap-sha into config file based on branch type:
       # - main/master: always-bump-minor (features AND fixes bump minor)
       # - release/*: always-bump-patch (all changes bump patch only)
-      # This prevents version collisions when fixes are backported
-      - name: Determine Versioning Strategy
-        id: strategy
+      # This prevents version collisions when fixes are backported.
+      # Note: These options must be in config file, not action inputs.
+      - name: Configure Release Please
         env:
           REF_NAME: ${{ github.ref_name }}
         run: |
           if [[ "${REF_NAME}" == "main" || "${REF_NAME}" == "master" ]]; then
-            echo "versioning_strategy=always-bump-minor" >> "$GITHUB_OUTPUT"
+            STRATEGY="always-bump-minor"
             echo "Using always-bump-minor for main/master (features/fixes → minor bump)"
 
             # For main branch, get the SHA of the last release tag that is an ancestor of HEAD
             # This prevents duplicate changelog entries from backported commits
-            # Use --merged to only get tags reachable from current commit, then sort by semver
             LAST_TAG=$(git tag --list 'v*' --merged HEAD --sort=-v:refname | head -n 1)
             if [[ -n "${LAST_TAG}" ]]; then
               BOOTSTRAP_SHA=$(git rev-list -n 1 "${LAST_TAG}")
-              echo "bootstrap_sha=${BOOTSTRAP_SHA}" >> "$GITHUB_OUTPUT"
               echo "Using bootstrap-sha from ${LAST_TAG}: ${BOOTSTRAP_SHA}"
             else
-              echo "bootstrap_sha=" >> "$GITHUB_OUTPUT"
+              BOOTSTRAP_SHA=""
               echo "No previous release tag found, not setting bootstrap-sha"
             fi
           else
-            echo "versioning_strategy=always-bump-patch" >> "$GITHUB_OUTPUT"
-            echo "bootstrap_sha=" >> "$GITHUB_OUTPUT"
+            STRATEGY="always-bump-patch"
+            BOOTSTRAP_SHA=""
             echo "Using always-bump-patch for release branch (all → patch bump)"
           fi
+
+          # Inject options into config file using jq (safe JSON manipulation)
+          # This is required because these options are not valid action inputs
+          if [[ -n "${BOOTSTRAP_SHA}" ]]; then
+            jq --arg strategy "${STRATEGY}" --arg sha "${BOOTSTRAP_SHA}" \
+              '. + {"versioning-strategy": $strategy, "bootstrap-sha": $sha}' \
+              release-please-config.json > release-please-config.json.tmp
+          else
+            jq --arg strategy "${STRATEGY}" \
+              '. + {"versioning-strategy": $strategy}' \
+              release-please-config.json > release-please-config.json.tmp
+          fi
+          mv release-please-config.json.tmp release-please-config.json
+
+          echo "Updated release-please-config.json:"
+          cat release-please-config.json
 
       - name: Run Release Please
         # v4
@@ -73,11 +87,6 @@ jobs:
           manifest-file: .release-please-manifest.json
           # Use current branch to support patch releases on release/* branches
           target-branch: ${{ github.ref_name }}
-          # Dynamic versioning strategy to prevent version collisions
-          versioning-strategy: ${{ steps.strategy.outputs.versioning_strategy }}
-          # Bootstrap SHA prevents duplicate changelog entries on main
-          # by ignoring commits before the last release tag
-          bootstrap-sha: ${{ steps.strategy.outputs.bootstrap_sha }}
 
       # Auto-merge SNAPSHOT bump PRs (they only update POM versions)
       # These PRs have the label "autorelease: snapshot" and are safe to auto-merge

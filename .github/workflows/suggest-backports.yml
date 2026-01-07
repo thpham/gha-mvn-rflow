@@ -50,13 +50,18 @@ jobs:
               pull_number: prNumber
             });
 
-            // Check if any commit is a fix: or security: type
+            // Check if any commit is a fix: or security: type (excluding CI-only scopes)
+            // CI-only changes (fix(ci):, fix(build):, fix(deps):) don't need backporting
+            // as they're infrastructure changes, not application fixes
             const backportableTypes = /^(fix|security)(\(.+\))?:/;
+            const ciOnlyScopes = /^(fix|security)\((ci|build|deps|release|workflow)\):/;
             const hasBackportableCommit = commits.some(commit => {
               const message = commit.commit.message.split('\n')[0];
-              const isBackportable = backportableTypes.test(message);
+              const isBackportable = backportableTypes.test(message) && !ciOnlyScopes.test(message);
               if (isBackportable) {
                 console.log(`Found backportable commit: ${message}`);
+              } else if (backportableTypes.test(message)) {
+                console.log(`Skipping CI-only commit: ${message}`);
               }
               return isBackportable;
             });
@@ -146,7 +151,7 @@ jobs:
             // Add comment explaining the labels
             const commitTypes = commits
               .map(c => c.commit.message.split('\n')[0])
-              .filter(m => backportableTypes.test(m))
+              .filter(m => backportableTypes.test(m) && !ciOnlyScopes.test(m))
               .map(m => `\`${m.substring(0, 60)}${m.length > 60 ? '...' : ''}\``)
               .join('\n- ');
 
