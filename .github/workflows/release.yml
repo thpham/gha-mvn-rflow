@@ -45,6 +45,49 @@ jobs:
           echo "Release created: ${TAG_NAME}"
           echo "Version: ${MAJOR}.${MINOR}.${PATCH}"
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Create Release Branch (only for releases from main)
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Creates release/X.Y branch from the release tag to enable backporting.
+  # Only runs for releases from main branch, not for patch releases.
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  create-release-branch:
+    name: Create Release Branch
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Create Release Branch
+        env:
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract major.minor for branch name (e.g., 1.1.0 -> 1.1)
+          BRANCH_VERSION=$(echo "${VERSION}" | cut -d. -f1-2)
+          BRANCH_NAME="release/${BRANCH_VERSION}"
+
+          # Check if branch already exists
+          if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
+            echo "Branch ${BRANCH_NAME} already exists, skipping creation"
+          else
+            echo "Creating branch ${BRANCH_NAME} from tag ${TAG_NAME}"
+            git checkout -b "${BRANCH_NAME}"
+            git push origin "${BRANCH_NAME}"
+            echo "Successfully created branch ${BRANCH_NAME}"
+          fi
+
   build:
     name: Build Release Artifacts
     needs: release-please
