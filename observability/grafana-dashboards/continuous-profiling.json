@@ -280,54 +280,60 @@
   "templating": {
     "list": [
       {
-        "current": {},
-        "datasource": {
-          "type": "grafana-pyroscope-datasource",
-          "uid": "pyroscope"
+        "current": {
+          "selected": false,
+          "text": "myproject-api",
+          "value": "myproject-api"
         },
-        "definition": "label_values(service_name)",
         "hide": 0,
         "includeAll": true,
+        "allValue": ".+",
         "label": "Service",
         "multi": true,
         "name": "service",
-        "options": [],
-        "query": {
-          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
-          "refId": "PyroscopeVariableQueryEditor-VariableQuery",
-          "type": 1,
-          "labelName": "service_name"
-        },
-        "refresh": 2,
-        "regex": "",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": true,
+            "text": "myproject-api",
+            "value": "myproject-api"
+          }
+        ],
+        "query": "myproject-api",
         "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
+        "type": "custom"
       },
       {
-        "current": {},
-        "datasource": {
-          "type": "grafana-pyroscope-datasource",
-          "uid": "pyroscope"
+        "current": {
+          "selected": false,
+          "text": "local",
+          "value": "local"
         },
-        "definition": "label_values(environment)",
         "hide": 0,
         "includeAll": true,
+        "allValue": ".+",
         "label": "Environment",
         "multi": false,
         "name": "environment",
-        "options": [],
-        "query": {
-          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
-          "refId": "PyroscopeVariableQueryEditor-VariableQuery",
-          "type": 1,
-          "labelName": "environment"
-        },
-        "refresh": 2,
-        "regex": "",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": true,
+            "text": "local",
+            "value": "local"
+          }
+        ],
+        "query": "local",
         "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
+        "type": "custom"
       }
     ]
   },

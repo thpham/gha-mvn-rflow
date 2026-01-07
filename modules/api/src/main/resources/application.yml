@@ -73,7 +73,7 @@ pyroscope:
     upload-interval: 15s
     labels:
       environment: ${DEPLOYMENT_ENV:local}
-      service: ${spring.application.name}
+      service_name: ${spring.application.name}
 
 # Logging configuration
 # Log export via OTLP is configured above in management.opentelemetry.logging.export.otlp.endpoint

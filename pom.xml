@@ -68,7 +68,8 @@
     <opentelemetry-instrumentation.version>2.12.0</opentelemetry-instrumentation.version>
 
     <!-- Profiling -->
-    <pyroscope.version>0.16.0</pyroscope.version>
+    <!-- v2.0.0+ required for JFR profiler support (works on macOS ARM64) -->
+    <pyroscope.version>2.1.2</pyroscope.version>
 
     <!-- Code Quality -->
     <sonar.organization>thpham</sonar.organization>

@@ -3,7 +3,9 @@ package com.example.myproject.api.config
 import io.pyroscope.http.Format
 import io.pyroscope.javaagent.EventType
 import io.pyroscope.javaagent.PyroscopeAgent
+import io.pyroscope.javaagent.api.Logger
 import io.pyroscope.javaagent.config.Config
+import io.pyroscope.javaagent.config.ProfilerType
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -25,25 +27,34 @@ class PyroscopeConfig(
 
     @PostConstruct
     fun startPyroscope() {
-        logger.info("Starting Pyroscope agent for application: $applicationName")
+        logger.info("Starting Pyroscope agent for application: {} at server: {}", applicationName, serverAddress)
 
-        PyroscopeAgent.start(
-            Config
-                .Builder()
-                .setApplicationName(applicationName)
-                .setServerAddress(serverAddress)
-                .setFormat(Format.JFR)
-                .setProfilingEvent(EventType.ITIMER)
-                .setProfilingAlloc("512k")
-                .setProfilingLock("10ms")
-                .setLabels(
-                    mapOf(
-                        "environment" to environment,
-                        "service" to applicationName,
-                    ),
-                ).build(),
-        )
-
-        logger.info("Pyroscope agent started successfully, pushing profiles to: $serverAddress")
+        try {
+            PyroscopeAgent.start(
+                Config
+                    .Builder()
+                    .setApplicationName(applicationName)
+                    .setServerAddress(serverAddress)
+                    .setFormat(Format.JFR)
+                    // Use JFR profiler (JVM built-in) instead of async-profiler
+                    // async-profiler has known issues on macOS ARM64 (Apple Silicon)
+                    .setProfilerType(ProfilerType.JFR)
+                    .setProfilingEvent(EventType.CPU)
+                    .setProfilingAlloc("512k")
+                    .setProfilingLock("10ms")
+                    .setLogLevel(Logger.Level.DEBUG)
+                    // Tenant ID for Grafana Pyroscope multi-tenancy (required for ingest)
+                    .setTenantID("anonymous")
+                    .setLabels(
+                        mapOf(
+                            "environment" to environment,
+                            "service_name" to applicationName,
+                        ),
+                    ).build(),
+            )
+            logger.info("Pyroscope agent started successfully, pushing profiles to: {}", serverAddress)
+        } catch (e: Exception) {
+            logger.error("Failed to start Pyroscope agent: {}", e.message, e)
+        }
     }
 }
