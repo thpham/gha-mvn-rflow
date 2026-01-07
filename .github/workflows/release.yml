@@ -33,6 +33,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Use current branch to support patch releases on release/* branches
+          target-branch: ${{ github.ref_name }}
 
       # Auto-merge SNAPSHOT bump PRs (they only update POM versions)
       # These PRs have the label "autorelease: snapshot" and are safe to auto-merge
