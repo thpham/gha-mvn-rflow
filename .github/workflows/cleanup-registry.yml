@@ -67,6 +67,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           package: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          # For GHE Cloud or data residency, change these URLs accordingly
+          # registry-url: https://ghcr.io
+          # github-api-url: https://api.github.com
           # Match both rolling tag (pr-N) and timestamped tags (pr-N-*)
           delete-tags: pr-${{ github.event.pull_request.number }},pr-${{ github.event.pull_request.number }}-*
 
@@ -123,6 +126,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           package: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
+          # For GHE Cloud or data residency, change these URLs accordingly
+          # registry-url: https://ghcr.io
+          # github-api-url: https://api.github.com
           # Match main-* and pr-* tags for cleanup
           delete-tags: ^(main-[0-9]{14}-[a-f0-9]+|pr-[0-9]+(-.*)?)$
           use-regex: true
