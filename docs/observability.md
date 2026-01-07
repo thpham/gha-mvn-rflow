@@ -81,7 +81,9 @@ docker-compose -f docker-compose.observability.yml up -d
 ```bash
 # Full observability (traces, logs, metrics, profiles)
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
+OTEL_LOGS_EXPORTER=otlp \
 OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs \
+OTEL_SERVICE_NAME=myproject-api \
 OTEL_METRICS_EXPORT_ENABLED=true \
 PYROSCOPE_ENABLED=true \
 PYROSCOPE_SERVER_ADDRESS=http://localhost:4040 \
@@ -91,12 +93,34 @@ mvn spring-boot:run -pl modules/api
 ### 4. Generate Traffic
 
 ```bash
-# Health check endpoint
+# Quick health check
 curl http://localhost:8080/api/v1/health
 
-# Generate load for meaningful metrics
+# Use the traffic generator script for sustained load
+./scripts/generate-traffic.sh                    # Default: 60s at 10 req/s
+./scripts/generate-traffic.sh -d 300 -r 50       # 5 minutes at 50 req/s
+./scripts/generate-traffic.sh -v                 # Verbose mode (show each request)
+
+# Or simple loop for quick tests
 for i in {1..100}; do curl -s http://localhost:8080/api/v1/health > /dev/null; done
 ```
+
+#### Chaos Endpoint for Testing
+
+A `/api/v1/chaos` endpoint is available to simulate errors and latency for observability testing:
+
+```bash
+# 20% error rate (default)
+curl http://localhost:8080/api/v1/chaos
+
+# 50% error rate with 100ms latency
+curl "http://localhost:8080/api/v1/chaos?errorRate=50&delayMs=100"
+
+# High error rate to test error dashboards
+curl "http://localhost:8080/api/v1/chaos?errorRate=80"
+```
+
+The traffic generator script automatically includes chaos endpoint calls to generate realistic error rates for dashboard testing.
 
 ### 5. Explore in Grafana
 
@@ -109,7 +133,9 @@ Navigate to http://localhost:3000 and explore the pre-configured dashboards in t
 | Variable                           | Default                              | Description                         |
 | ---------------------------------- | ------------------------------------ | ----------------------------------- |
 | `OTEL_EXPORTER_OTLP_ENDPOINT`      | `http://localhost:4318/v1/traces`    | Tempo OTLP HTTP endpoint            |
+| `OTEL_LOGS_EXPORTER`               | `none`                               | Set to `otlp` to enable log export  |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | `http://localhost:3100/otlp/v1/logs` | Loki OTLP endpoint                  |
+| `OTEL_SERVICE_NAME`                | `${spring.application.name}`         | Service name for OTEL SDK           |
 | `OTEL_METRICS_EXPORT_ENABLED`      | `false`                              | Enable OTLP metrics export          |
 | `PYROSCOPE_ENABLED`                | `false`                              | Enable continuous profiling         |
 | `PYROSCOPE_SERVER_ADDRESS`         | `http://localhost:4040`              | Pyroscope server URL                |
@@ -156,6 +182,19 @@ Five pre-configured dashboards are auto-provisioned:
 - Endpoint performance table
 
 **Variables**: Namespace, Application, Pod
+
+**Latency Filtering**: The P95 Latency stat and Response Time Percentiles panel exclude `/actuator/*` endpoints by default. This prevents internal health checks and Prometheus scraping (which run every 10s) from skewing the latency percentiles lower than the actual user-facing performance. To customize this filter, modify the `uri!~"/actuator.*"` clause in the panel queries:
+
+```promql
+# Current: Excludes all actuator endpoints
+histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{..., uri!~"/actuator.*"}[...])) by (le))
+
+# Alternative: Exclude specific endpoints
+histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{..., uri!~"/actuator/prometheus|/actuator/health"}[...])) by (le))
+
+# Alternative: Include only API endpoints
+histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{..., uri=~"/api/.*"}[...])) by (le))
+```
 
 ### 2. JVM Performance
 

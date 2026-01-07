@@ -99,7 +99,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} [$__interval]))",
+          "expr": "sum(count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "Total Logs",
           "queryType": "range",
           "refId": "A"
@@ -167,7 +167,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} |= \"ERROR\" [$__interval]))",
+          "expr": "sum(count_over_time({service_name=~\".+\"} |= \"ERROR\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "Errors",
           "queryType": "range",
           "refId": "A"
@@ -235,7 +235,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} |= \"WARN\" [$__interval]))",
+          "expr": "sum(count_over_time({service_name=~\".+\"} |= \"WARN\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "Warnings",
           "queryType": "range",
           "refId": "A"
@@ -415,7 +415,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(bytes_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} [$__interval]))",
+          "expr": "sum(bytes_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "Log Volume",
           "queryType": "range",
           "refId": "A"
@@ -580,7 +580,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (level) (count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} | json | level =~ \"$level\" [$__interval]))",
+          "expr": "sum by (level) (count_over_time({service_name=~\".+\"} | json | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" | level=~\"$level\" [$__interval]))",
           "legendFormat": "{{level}}",
           "queryType": "range",
           "refId": "A"
@@ -671,7 +671,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (service_name) (count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} [$__interval]))",
+          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "{{service_name}}",
           "queryType": "range",
           "refId": "A"
@@ -762,7 +762,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} [$__interval]))",
+          "expr": "sum by (pod) (count_over_time({service_name=~\".+\"} | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "{{pod}}",
           "queryType": "range",
           "refId": "A"
@@ -866,7 +866,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (service_name) (count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} |= \"ERROR\" [$__interval]))",
+          "expr": "sum by (service_name) (count_over_time({service_name=~\".+\"} |= \"ERROR\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "{{service_name}}",
           "queryType": "range",
           "refId": "A"
@@ -957,7 +957,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (count_over_time({service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} |= \"ERROR\" [$__interval]))",
+          "expr": "sum by (pod) (count_over_time({service_name=~\".+\"} |= \"ERROR\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" [$__interval]))",
           "legendFormat": "{{pod}}",
           "queryType": "range",
           "refId": "A"
@@ -1009,7 +1009,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} | json | level =~ \"$level\" | line_format \"{{.level}} [{{.traceId}}] {{.logger}}: {{.message}}\"",
+          "expr": "{service_name=~\".+\"} | json | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\" | level=~\"$level\" | line_format \"{{.level}} [{{.traceId}}] {{.logger}}: {{.message}}\"",
           "legendFormat": "",
           "queryType": "range",
           "refId": "A"
@@ -1058,7 +1058,7 @@
                 "uid": "loki"
               },
               "editorMode": "code",
-              "expr": "{service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} |= \"$search\"",
+              "expr": "{service_name=~\".+\"} |= \"$search\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\"",
               "legendFormat": "",
               "queryType": "range",
               "refId": "A"
@@ -1111,7 +1111,7 @@
                 "uid": "loki"
               },
               "editorMode": "code",
-              "expr": "{service_name=~\"$service\", namespace=~\"$namespace\", pod=~\"$pod\"} | json | traceId = \"$traceId\"",
+              "expr": "{service_name=~\".+\"} | json | traceId=~\"$traceId\" | service_name=~\"$service\" | namespace=~\"$namespace\" | pod=~\"$pod\"",
               "legendFormat": "",
               "queryType": "range",
               "refId": "A"
@@ -1146,7 +1146,7 @@
         "query": {
           "label": "namespace",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
+          "stream": "{service_name=~\".+\"}",
           "type": 1
         },
         "refresh": 2,
@@ -1171,7 +1171,7 @@
         "query": {
           "label": "service_name",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{namespace=~\"$namespace\"}",
+          "stream": "{service_name=~\".+\"}",
           "type": 1
         },
         "refresh": 2,
@@ -1196,7 +1196,7 @@
         "query": {
           "label": "pod",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{namespace=~\"$namespace\", service_name=~\"$service\"}",
+          "stream": "{service_name=~\".+\"}",
           "type": 1
         },
         "refresh": 2,

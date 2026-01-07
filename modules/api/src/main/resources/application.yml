@@ -13,6 +13,19 @@ management:
   endpoint:
     health:
       show-details: always
+  # Metrics Configuration
+  metrics:
+    distribution:
+      # Enable histogram buckets for percentile calculations
+      percentiles-histogram:
+        http.server.requests: true
+      # Standard SLO buckets for latency monitoring
+      slo:
+        http.server.requests: 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2500ms, 5s, 10s
+    tags:
+      # Add application and environment labels to all metrics
+      application: ${spring.application.name}
+      namespace: ${NAMESPACE:local}
 
   # OpenTelemetry Resource Attributes
   opentelemetry:
@@ -59,6 +72,10 @@ pyroscope:
 
 # Logging configuration
 # Note: Log pattern and OTEL export defined in logback-spring.xml
+# The OpenTelemetry SDK autoconfigure reads these environment variables for log export:
+#   OTEL_LOGS_EXPORTER=otlp (default is 'none', must be set to enable)
+#   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs (Loki OTLP endpoint)
+#   OTEL_SERVICE_NAME=${spring.application.name}
 logging:
   level:
     # Debug logging for tracing (demo only)

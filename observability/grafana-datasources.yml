@@ -74,12 +74,8 @@ datasources:
     editable: false
     jsonData:
       derivedFields:
-        # Link logs to traces via traceId (Tempo)
+        # Link logs to traces via traceId in JSON format (structured logs)
         - datasourceUid: tempo
           matcherRegex: '"traceId":"([a-f0-9]+)"'
-          name: TraceID
-          url: '$${__value.raw}'
-        - datasourceUid: tempo
-          matcherRegex: 'traceId=([a-f0-9]+)'
           name: TraceID
           url: '$${__value.raw}'

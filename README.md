@@ -314,6 +314,9 @@ docker-compose -f docker-compose.observability.yml up -d
 
 # Run the application with full observability
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
+OTEL_LOGS_EXPORTER=otlp \
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs \
+OTEL_SERVICE_NAME=myproject-api \
 PYROSCOPE_ENABLED=true \
 mvn spring-boot:run -pl modules/api
 

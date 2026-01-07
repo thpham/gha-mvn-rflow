@@ -54,6 +54,12 @@
       <artifactId>micrometer-registry-otlp</artifactId>
     </dependency>
 
+    <!-- Prometheus Metrics Registry (exposes /actuator/prometheus endpoint) -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
     <!-- Console/Logging exporter for demo/debugging -->
     <dependency>
       <groupId>io.opentelemetry</groupId>
@@ -68,6 +74,17 @@
       <artifactId>opentelemetry-logback-appender-1.0</artifactId>
       <version>${opentelemetry-instrumentation.version}-alpha</version>
       <scope>runtime</scope>
+    </dependency>
+
+    <!-- OpenTelemetry SDK autoconfigure for OTLP log export -->
+    <!-- Required to initialize the OTel SDK with log exporter for the logback appender -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure-spi</artifactId>
     </dependency>
 
     <!-- Pyroscope Java SDK for continuous profiling -->
