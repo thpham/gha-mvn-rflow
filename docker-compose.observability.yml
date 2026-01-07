@@ -21,9 +21,9 @@ services:
     container_name: tempo
     command: ["-config.file=/etc/tempo/tempo.yml"]
     ports:
-      - "3200:3200"    # Tempo API
-      - "4317:4317"    # OTLP gRPC
-      - "4318:4318"    # OTLP HTTP
+      - "3200:3200" # Tempo API
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
     volumes:
       - ./observability/tempo.yml:/etc/tempo/tempo.yml:ro
       - tempo-data:/var/tempo
@@ -32,11 +32,11 @@ services:
 
   # Loki - Log aggregation
   loki:
-    image: grafana/loki:3.3.2
+    image: grafana/loki:3.5.9
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
     ports:
-      - "3100:3100"    # Loki API and OTLP ingestion
+      - "3100:3100" # Loki API and OTLP ingestion
     volumes:
       - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
@@ -45,14 +45,14 @@ services:
 
   # Mimir - Scalable metrics storage (Grafana native, Prometheus-compatible)
   mimir:
-    image: grafana/mimir:2.15.0
+    image: grafana/mimir:3.0.2
     container_name: mimir
     command:
-      - '-config.file=/etc/mimir/mimir.yml'
-      - '-target=all'
+      - "-config.file=/etc/mimir/mimir.yml"
+      - "-target=all"
     ports:
-      - "9090:9090"    # Mimir API (Prometheus-compatible)
-      - "9095:9095"    # gRPC
+      - "9090:9090" # Mimir API (Prometheus-compatible)
+      - "9095:9095" # gRPC
     volumes:
       - ./observability/mimir.yml:/etc/mimir/mimir.yml:ro
       - mimir-data:/data/mimir
@@ -61,7 +61,7 @@ services:
 
   # Alloy - OpenTelemetry collector (scrapes metrics, forwards to Mimir)
   alloy:
-    image: grafana/alloy:v1.5.1
+    image: grafana/alloy:v1.12.1
     container_name: alloy
     command:
       - run
@@ -69,7 +69,7 @@ services:
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
     ports:
-      - "12345:12345"  # Alloy UI
+      - "12345:12345" # Alloy UI
     volumes:
       - ./observability/alloy.config:/etc/alloy/config.alloy:ro
       - alloy-data:/var/lib/alloy/data
@@ -80,7 +80,7 @@ services:
 
   # Grafana - Visualization dashboards
   grafana:
-    image: grafana/grafana:11.4.0
+    image: grafana/grafana:11.6
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
