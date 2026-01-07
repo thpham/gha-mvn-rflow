@@ -81,7 +81,7 @@ jobs:
 
       # Auto-merge SNAPSHOT bump PRs (they only update POM versions)
       # These PRs have the label "autorelease: snapshot" and are safe to auto-merge
-      - name: Enable Auto-Merge for SNAPSHOT PRs
+      - name: Auto-Merge SNAPSHOT PRs
         if: ${{ steps.release.outputs.prs_created == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,8 +92,13 @@ jobs:
           # Note: release-please outputs labels as string array, not objects
           echo "${RELEASE_PRS}" | jq -r '.[] | select(.labels[] == "autorelease: snapshot") | .number' | while read -r pr_number; do
             if [[ -n "${pr_number}" ]]; then
-              echo "Enabling auto-merge for SNAPSHOT PR #${pr_number}"
-              gh pr merge "${pr_number}" --auto --squash --repo "${GITHUB_REPOSITORY}"
+              echo "Auto-merging SNAPSHOT PR #${pr_number}"
+              # Try auto-merge first (waits for required checks if configured)
+              # Fall back to direct merge if auto-merge not supported (no required checks)
+              if ! gh pr merge "${pr_number}" --auto --squash --repo "${GITHUB_REPOSITORY}" 2>/dev/null; then
+                echo "Auto-merge not available, merging directly..."
+                gh pr merge "${pr_number}" --squash --repo "${GITHUB_REPOSITORY}"
+              fi
             fi
           done
 
