@@ -6,6 +6,7 @@ import com.example.myproject.core.service.HealthService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,6 +23,8 @@ import kotlin.random.Random
 @Tag(name = "Health", description = "Health check endpoints")
 class HealthController(
     private val healthService: HealthService,
+    @Value("\${spring.application.name}") private val appName: String,
+    @Value("\${project.version:unknown}") private val projectVersion: String,
 ) {
     private val logger = LoggerFactory.getLogger(HealthController::class.java)
 
@@ -43,6 +46,19 @@ class HealthController(
                 "version" to Constants.API_VERSION,
             ),
         )
+
+    @GetMapping("/version")
+    @Operation(summary = "Get build version", description = "Returns the current build version from Maven")
+    fun version(): ApiResponse<Map<String, String>> {
+        logger.debug("Version endpoint called")
+        return ApiResponse.success(
+            mapOf(
+                "application" to appName,
+                "version" to projectVersion,
+                "api" to Constants.API_VERSION,
+            ),
+        )
+    }
 
     @GetMapping("/chaos")
     @Operation(
