@@ -17,10 +17,11 @@ jobs:
   suggest-labels:
     name: Suggest Backport Labels
     runs-on: ubuntu-latest
-    # Skip draft PRs and PRs from forks
+    # Skip draft PRs, PRs from forks, and backport PRs (to avoid circular suggestions)
     if: |
       github.event.pull_request.draft == false &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !startsWith(github.event.pull_request.head.ref, 'backport-')
 
     steps:
       - name: Checkout
