@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.1.0...v1.2.0) (2026-01-07)
+
+
+### Features
+
+* **ci:** auto-create release branches after releases from main ([8e51ef5](https://github.com/thpham/gha-mvn-rflow/commit/8e51ef563668dcf49fcea0582584d2999666f09e))
+* **ci:** auto-merge SNAPSHOT bump PRs after release ([f05fa3b](https://github.com/thpham/gha-mvn-rflow/commit/f05fa3b0e07d7677c1f431269e7fbffdbf5085f1))
+
+
+### Bug Fixes
+
+* **api:** validate delayMs parameter in chaos endpoint ([#35](https://github.com/thpham/gha-mvn-rflow/issues/35)) ([f1a312a](https://github.com/thpham/gha-mvn-rflow/commit/f1a312ae7583695bb0ee2511451541a00fc267db))
+* **ci:** add target-branch to release-please for patch releases ([76b516a](https://github.com/thpham/gha-mvn-rflow/commit/76b516a43115e0188465853770c6d3d4a0074769))
+* **ci:** correct jq filter for release-please labels array ([7d988e8](https://github.com/thpham/gha-mvn-rflow/commit/7d988e83a4116d2c3a4bc2494697402cdb0392de))
+* **ci:** enable persist-credentials for backport action ([2554451](https://github.com/thpham/gha-mvn-rflow/commit/25544513808b4fd55dfea5a331891d32d0d613a0))
+* **ci:** skip backport label suggestions for backport PRs ([444bed4](https://github.com/thpham/gha-mvn-rflow/commit/444bed476ada1df87d15e834ed0974f93c9535ff))
+
 ## [1.1.0](https://github.com/thpham/gha-mvn-rflow/compare/myproject-v1.0.0...myproject-v1.1.0) (2026-01-07)
 
 
