@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/thpham/gha-mvn-rflow/compare/v1.2.0...v1.2.1) (2026-01-07)
+
+
+### Bug Fixes
+
+* **release:** update jreleaser.yml for v2.0.0 compatibility ([#49](https://github.com/thpham/gha-mvn-rflow/issues/49)) ([#51](https://github.com/thpham/gha-mvn-rflow/issues/51)) ([22bb169](https://github.com/thpham/gha-mvn-rflow/commit/22bb169f611ec28f7230cbbb271b028552eb1c34))
+
 ## [1.2.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.1.0...v1.2.0) (2026-01-07)
 
 
