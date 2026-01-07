@@ -1,0 +1,66 @@
+# Docker Compose for local observability testing
+# Usage: docker-compose -f docker-compose.observability.yml up -d
+#
+# After starting, access:
+#   - Jaeger UI:    http://localhost:16686
+#   - Prometheus:   http://localhost:9090
+#   - Grafana:      http://localhost:3000 (admin/admin)
+#
+# Run the application with OTLP export enabled:
+#   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
+#   OTEL_METRICS_EXPORT_ENABLED=true \
+#   ./mvnw spring-boot:run -pl modules/api
+
+services:
+  # Jaeger - All-in-one for tracing visualization
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    networks:
+      - observability
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-remote-write-receiver'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - observability
+
+  # Grafana - Visualization dashboards
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - observability
+    depends_on:
+      - prometheus
+      - jaeger
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  grafana-storage:

@@ -9,10 +9,45 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
+
+  # OpenTelemetry Resource Attributes
+  opentelemetry:
+    resource-attributes:
+      service.name: ${spring.application.name}
+      service.version: ${project.version:0.1.0-SNAPSHOT}
+      deployment.environment: ${DEPLOYMENT_ENV:local}
+
+  # Tracing Configuration
+  tracing:
+    enabled: true
+    sampling:
+      # 100% sampling for demo; use 0.1 (10%) in production
+      probability: 1.0
+
+  # OTLP Tracing Export
+  otlp:
+    tracing:
+      # Endpoint for OTLP collector (e.g., Jaeger, Tempo, or OTel Collector)
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
+        step: 30s
+        enabled: ${OTEL_METRICS_EXPORT_ENABLED:false}
+
+# Logging pattern with trace correlation (automatic with Micrometer Tracing)
+logging:
+  pattern:
+    # Include traceId and spanId in log output
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  level:
+    # Debug logging for tracing (demo only)
+    io.micrometer.tracing: ${TRACE_LOG_LEVEL:INFO}
+    io.opentelemetry: ${OTEL_LOG_LEVEL:INFO}
 
 springdoc:
   api-docs:
