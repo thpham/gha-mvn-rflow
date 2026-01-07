@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/thpham/gha-mvn-rflow/compare/v1.3.0...v1.3.1) (2026-01-07)
+
+
+### Bug Fixes
+
+* **ci:** add fallback for SNAPSHOT PR auto-merge ([#63](https://github.com/thpham/gha-mvn-rflow/issues/63)) ([369f607](https://github.com/thpham/gha-mvn-rflow/commit/369f607c90cb0ebf25148f4f0477978b7035734a))
+* **ci:** prevent duplicate changelog entries and fix template injection ([6dde39a](https://github.com/thpham/gha-mvn-rflow/commit/6dde39af5f597d0dfcb815ee9d90ed5feff36930))
+
 ## [1.3.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.2.1...v1.3.0) (2026-01-07)
 
 This release contains internal CI/CD improvements with no user-facing changes.
