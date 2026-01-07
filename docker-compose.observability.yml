@@ -2,10 +2,10 @@
 # Usage: docker-compose -f docker-compose.observability.yml up -d
 #
 # After starting, access:
-#   - Jaeger UI:    http://localhost:16686 (traces)
+#   - Grafana:      http://localhost:3000  (dashboards, traces, logs - admin/admin)
 #   - Prometheus:   http://localhost:9090  (metrics)
-#   - Grafana:      http://localhost:3000  (dashboards, admin/admin)
 #   - Loki:         http://localhost:3100  (logs, query via Grafana)
+#   - Tempo:        http://localhost:3200  (traces, query via Grafana)
 #
 # Run the application with OTLP export enabled:
 #   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
@@ -14,16 +14,18 @@
 #   mvn spring-boot:run -pl modules/api
 
 services:
-  # Jaeger - All-in-one for tracing visualization
-  jaeger:
-    image: jaegertracing/all-in-one:1.54
-    container_name: jaeger
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
+  # Tempo - Distributed tracing backend (Grafana native)
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/tempo.yml"]
     ports:
-      - "16686:16686"  # Jaeger UI
+      - "3200:3200"    # Tempo API
       - "4317:4317"    # OTLP gRPC
       - "4318:4318"    # OTLP HTTP
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
     networks:
       - observability
 
@@ -72,7 +74,7 @@ services:
       - observability
     depends_on:
       - prometheus
-      - jaeger
+      - tempo
       - loki
 
 networks:
@@ -82,3 +84,4 @@ networks:
 volumes:
   grafana-storage:
   loki-data:
+  tempo-data:
