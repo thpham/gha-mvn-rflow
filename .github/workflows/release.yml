@@ -25,6 +25,21 @@ jobs:
       upload_url: ${{ steps.release.outputs.upload_url }}
 
     steps:
+      # Determine versioning strategy based on branch type:
+      # - main/master: always-bump-minor (features AND fixes bump minor)
+      # - release/*: always-bump-patch (all changes bump patch only)
+      # This prevents version collisions when fixes are backported
+      - name: Determine Versioning Strategy
+        id: strategy
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" || "${{ github.ref_name }}" == "master" ]]; then
+            echo "versioning_strategy=always-bump-minor" >> "$GITHUB_OUTPUT"
+            echo "Using always-bump-minor for main/master (features/fixes → minor bump)"
+          else
+            echo "versioning_strategy=always-bump-patch" >> "$GITHUB_OUTPUT"
+            echo "Using always-bump-patch for release branch (all → patch bump)"
+          fi
+
       - name: Run Release Please
         # v4
         uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
@@ -35,6 +50,8 @@ jobs:
           manifest-file: .release-please-manifest.json
           # Use current branch to support patch releases on release/* branches
           target-branch: ${{ github.ref_name }}
+          # Dynamic versioning strategy to prevent version collisions
+          versioning-strategy: ${{ steps.strategy.outputs.versioning_strategy }}
 
       # Auto-merge SNAPSHOT bump PRs (they only update POM versions)
       # These PRs have the label "autorelease: snapshot" and are safe to auto-merge
