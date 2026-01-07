@@ -17,7 +17,7 @@
 services:
   # Tempo - Distributed tracing backend (Grafana native)
   tempo:
-    image: grafana/tempo:2.4.1
+    image: grafana/tempo:2.9.0
     container_name: tempo
     command: ["-config.file=/etc/tempo/tempo.yml"]
     ports:
@@ -32,7 +32,7 @@ services:
 
   # Loki - Log aggregation
   loki:
-    image: grafana/loki:2.9.4
+    image: grafana/loki:3.3.2
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
     ports:
@@ -45,7 +45,7 @@ services:
 
   # Mimir - Scalable metrics storage (Grafana native, Prometheus-compatible)
   mimir:
-    image: grafana/mimir:2.12.0
+    image: grafana/mimir:2.15.0
     container_name: mimir
     command:
       - '-config.file=/etc/mimir/mimir.yml'
@@ -61,7 +61,7 @@ services:
 
   # Alloy - OpenTelemetry collector (scrapes metrics, forwards to Mimir)
   alloy:
-    image: grafana/alloy:v1.4.2
+    image: grafana/alloy:v1.5.1
     container_name: alloy
     command:
       - run
@@ -80,7 +80,7 @@ services:
 
   # Grafana - Visualization dashboards
   grafana:
-    image: grafana/grafana:10.4.0
+    image: grafana/grafana:11.4.0
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
