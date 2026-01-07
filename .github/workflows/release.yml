@@ -36,6 +36,21 @@ jobs:
           # Use current branch to support patch releases on release/* branches
           target-branch: ${{ github.ref_name }}
 
+      # Auto-merge SNAPSHOT bump PRs (they only update POM versions)
+      # These PRs have the label "autorelease: snapshot" and are safe to auto-merge
+      - name: Enable Auto-Merge for SNAPSHOT PRs
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Parse the PR JSON to get PR numbers and check for snapshot label
+          echo '${{ steps.release.outputs.prs }}' | jq -r '.[] | select(.labels[] | .name == "autorelease: snapshot") | .number' | while read -r pr_number; do
+            if [[ -n "${pr_number}" ]]; then
+              echo "Enabling auto-merge for SNAPSHOT PR #${pr_number}"
+              gh pr merge "${pr_number}" --auto --squash --repo "${{ github.repository }}"
+            fi
+          done
+
       - name: Output Release Info
         if: ${{ steps.release.outputs.release_created }}
         env:
