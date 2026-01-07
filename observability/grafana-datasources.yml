@@ -49,6 +49,21 @@ datasources:
         enabled: true
       lokiSearch:
         datasourceUid: loki
+      tracesToProfiles:
+        datasourceUid: pyroscope
+        tags:
+          - key: service.name
+            value: service_name
+        profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
+        customQuery: true
+
+  # Pyroscope for continuous profiling
+  - name: Pyroscope
+    type: grafana-pyroscope-datasource
+    uid: pyroscope
+    access: proxy
+    url: http://pyroscope:4040
+    editable: false
 
   # Loki for logs
   - name: Loki

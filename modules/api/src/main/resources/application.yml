@@ -43,6 +43,20 @@ management:
         # Endpoint for OTLP log export (e.g., Loki via OTel Collector)
         endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:4318/v1/logs}
 
+# Pyroscope Profiling Configuration
+# Profiles are pushed to Pyroscope server for continuous profiling
+pyroscope:
+  agent:
+    enabled: ${PYROSCOPE_ENABLED:false}
+    application-name: ${spring.application.name}
+    server-address: ${PYROSCOPE_SERVER_ADDRESS:http://localhost:4040}
+    # Profile types: cpu, alloc, lock, wall
+    profiling-interval: 10ms
+    upload-interval: 15s
+    labels:
+      environment: ${DEPLOYMENT_ENV:local}
+      service: ${spring.application.name}
+
 # Logging configuration
 # Note: Log pattern and OTEL export defined in logback-spring.xml
 logging:

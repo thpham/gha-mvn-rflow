@@ -70,6 +70,13 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!-- Pyroscope Java SDK for continuous profiling -->
+    <dependency>
+      <groupId>io.pyroscope</groupId>
+      <artifactId>agent</artifactId>
+      <version>${pyroscope.version}</version>
+    </dependency>
+
     <!-- API Documentation -->
     <dependency>
       <groupId>org.springdoc</groupId>
