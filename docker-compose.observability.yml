@@ -103,6 +103,8 @@ services:
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./observability/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./observability/grafana-dashboards:/etc/grafana/provisioning/dashboards/json:ro
     networks:
       - observability
     depends_on:
