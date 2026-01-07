@@ -28,7 +28,7 @@ management:
       # 100% sampling for demo; use 0.1 (10%) in production
       probability: 1.0
 
-  # OTLP Tracing Export
+  # OTLP Export Configuration
   otlp:
     tracing:
       # Endpoint for OTLP collector (e.g., Jaeger, Tempo, or OTel Collector)
@@ -38,16 +38,19 @@ management:
         url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
         step: 30s
         enabled: ${OTEL_METRICS_EXPORT_ENABLED:false}
+    logs:
+      export:
+        # Endpoint for OTLP log export (e.g., Loki via OTel Collector)
+        endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:4318/v1/logs}
 
-# Logging pattern with trace correlation (automatic with Micrometer Tracing)
+# Logging configuration
+# Note: Log pattern and OTEL export defined in logback-spring.xml
 logging:
-  pattern:
-    # Include traceId and spanId in log output
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
   level:
     # Debug logging for tracing (demo only)
     io.micrometer.tracing: ${TRACE_LOG_LEVEL:INFO}
     io.opentelemetry: ${OTEL_LOG_LEVEL:INFO}
+    com.example.myproject: DEBUG
 
 springdoc:
   api-docs:

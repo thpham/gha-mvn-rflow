@@ -61,6 +61,15 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!-- OpenTelemetry Logback appender for log export via OTLP -->
+    <!-- Note: Uses alpha version as stable releases are not yet available -->
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+      <version>${opentelemetry-instrumentation.version}-alpha</version>
+      <scope>runtime</scope>
+    </dependency>
+
     <!-- API Documentation -->
     <dependency>
       <groupId>org.springdoc</groupId>

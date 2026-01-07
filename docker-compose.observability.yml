@@ -2,14 +2,16 @@
 # Usage: docker-compose -f docker-compose.observability.yml up -d
 #
 # After starting, access:
-#   - Jaeger UI:    http://localhost:16686
-#   - Prometheus:   http://localhost:9090
-#   - Grafana:      http://localhost:3000 (admin/admin)
+#   - Jaeger UI:    http://localhost:16686 (traces)
+#   - Prometheus:   http://localhost:9090  (metrics)
+#   - Grafana:      http://localhost:3000  (dashboards, admin/admin)
+#   - Loki:         http://localhost:3100  (logs, query via Grafana)
 #
 # Run the application with OTLP export enabled:
 #   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces \
+#   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:3100/otlp/v1/logs \
 #   OTEL_METRICS_EXPORT_ENABLED=true \
-#   ./mvnw spring-boot:run -pl modules/api
+#   mvn spring-boot:run -pl modules/api
 
 services:
   # Jaeger - All-in-one for tracing visualization
@@ -22,6 +24,19 @@ services:
       - "16686:16686"  # Jaeger UI
       - "4317:4317"    # OTLP gRPC
       - "4318:4318"    # OTLP HTTP
+    networks:
+      - observability
+
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"    # Loki API and OTLP ingestion
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
     networks:
       - observability
 
@@ -52,11 +67,13 @@ services:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
     networks:
       - observability
     depends_on:
       - prometheus
       - jaeger
+      - loki
 
 networks:
   observability:
@@ -64,3 +81,4 @@ networks:
 
 volumes:
   grafana-storage:
+  loki-data:
