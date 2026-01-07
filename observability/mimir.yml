@@ -9,7 +9,7 @@ multitenancy_enabled: false
 
 # Server configuration
 server:
-  http_listen_port: 9009
+  http_listen_port: 9090
   grpc_listen_port: 9095
   log_level: info
 

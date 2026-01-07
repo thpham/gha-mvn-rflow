@@ -3,7 +3,7 @@
 #
 # After starting, access:
 #   - Grafana:      http://localhost:3000  (dashboards, traces, logs - admin/admin)
-#   - Mimir:        http://localhost:9009  (metrics storage, Prometheus-compatible)
+#   - Mimir:        http://localhost:9090  (metrics storage, Prometheus-compatible)
 #   - Alloy:        http://localhost:12345 (OpenTelemetry collector, scrapes and forwards to Mimir)
 #   - Loki:         http://localhost:3100  (logs, query via Grafana)
 #   - Tempo:        http://localhost:3200  (traces, query via Grafana)
@@ -51,7 +51,7 @@ services:
       - '-config.file=/etc/mimir/mimir.yml'
       - '-target=all'
     ports:
-      - "9009:9009"    # Mimir API (Prometheus-compatible)
+      - "9090:9090"    # Mimir API (Prometheus-compatible)
       - "9095:9095"    # gRPC
     volumes:
       - ./observability/mimir.yml:/etc/mimir/mimir.yml:ro
