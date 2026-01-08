@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.8.0...v1.9.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* **ci:** trigger SNAPSHOT bump on new release branches and warn on backports ([9226d89](https://github.com/thpham/gha-mvn-rflow/commit/9226d89dad56ba7c05143ad0545ccdeef24e6365))
+* **common:** add APP_DESCRIPTION constant for consistency ([#78](https://github.com/thpham/gha-mvn-rflow/issues/78)) ([a9d4379](https://github.com/thpham/gha-mvn-rflow/commit/a9d4379a5cc35c4c651513bfbf5ae55f0850c295))
+
 ## [1.8.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.7.0...v1.8.0) (2026-01-08)
 
 
