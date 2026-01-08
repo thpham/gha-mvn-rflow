@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.9.0...v1.10.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* **ci:** add actions:write permission and always trigger SNAPSHOT bump ([0fe2a2c](https://github.com/thpham/gha-mvn-rflow/commit/0fe2a2c79a284491b19743f8a7463d18895edcec))
+
 ## [1.9.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.8.0...v1.9.0) (2026-01-08)
 
 
