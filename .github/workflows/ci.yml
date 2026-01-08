@@ -5,19 +5,19 @@ on:
     branches:
       - main
       - master
-      - 'release/**'
+      - "release/**"
     paths:
-      - 'pom.xml'
-      - 'modules/**'
+      - "pom.xml"
+      - "modules/**"
   pull_request:
     branches:
       - main
       - master
-      - 'release/**'
+      - "release/**"
     types: [opened, synchronize, reopened, labeled]
     paths:
-      - 'pom.xml'
-      - 'modules/**'
+      - "pom.xml"
+      - "modules/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -54,8 +54,8 @@ jobs:
         # v5
         uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Restore Maven cache
         # v4 - Read-only cache restore to prevent cache poisoning attacks
@@ -113,7 +113,7 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: '**/target/surefire-reports/*.xml'
+          path: "**/target/surefire-reports/*.xml"
           retention-days: 7
 
       - name: Upload Build Artifacts
@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write  # Required to cancel workflow
+      actions: write # Required to cancel workflow
 
     steps:
       - name: Checkout
@@ -151,8 +151,8 @@ jobs:
         # v5
         uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Restore Maven cache
         # v4 - Read-only cache restore to prevent cache poisoning attacks
@@ -400,7 +400,7 @@ jobs:
             - \`${primaryTag}\` - immutable, commit-specific
             - \`${rollingTag}\` - rolling, updates on each push
 
-            > These images will be automatically cleaned up 7 days after the PR is closed.
+            > These images will be automatically cleaned up after the PR is closed.
             `;
 
             github.rest.issues.createComment({
