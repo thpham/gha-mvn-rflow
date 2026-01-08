@@ -123,6 +123,7 @@ jobs:
           TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
           VERSION: ${{ needs.release-please.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           # Extract major.minor for branch name (e.g., 1.1.0 -> 1.1)
           BRANCH_VERSION=$(echo "${VERSION}" | cut -d. -f1-2)
@@ -133,8 +134,12 @@ jobs:
             echo "Branch ${BRANCH_NAME} already exists, skipping creation"
           else
             echo "Creating branch ${BRANCH_NAME} from tag ${TAG_NAME}"
-            git checkout -b "${BRANCH_NAME}"
-            git push origin "${BRANCH_NAME}"
+            # Get the commit SHA for the tag
+            TAG_SHA=$(git rev-parse "${TAG_NAME}")
+            # Use GitHub API to create the branch (works with persist-credentials: false)
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/heads/${BRANCH_NAME}" \
+              -f sha="${TAG_SHA}"
             echo "Successfully created branch ${BRANCH_NAME}"
           fi
 
