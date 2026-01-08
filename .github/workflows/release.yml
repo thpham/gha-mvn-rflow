@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'release/**'
+      - "release/**"
   workflow_dispatch:
 
 env:
@@ -32,50 +32,36 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Inject versioning strategy and bootstrap-sha into config file based on branch type:
+      # Determine versioning strategy based on branch type:
       # - main/master: always-bump-minor (features AND fixes bump minor)
       # - release/*: always-bump-patch (all changes bump patch only)
-      # This prevents version collisions when fixes are backported.
-      # Note: These options must be in config file, not action inputs.
-      - name: Configure Release Please
+      # This prevents version collisions when fixes are backported
+      - name: Determine Versioning Strategy
+        id: strategy
         env:
           REF_NAME: ${{ github.ref_name }}
         run: |
           if [[ "${REF_NAME}" == "main" || "${REF_NAME}" == "master" ]]; then
-            STRATEGY="always-bump-minor"
+            echo "versioning_strategy=always-bump-minor" >> "$GITHUB_OUTPUT"
             echo "Using always-bump-minor for main/master (features/fixes → minor bump)"
 
             # For main branch, get the SHA of the last release tag that is an ancestor of HEAD
             # This prevents duplicate changelog entries from backported commits
+            # Use --merged to only get tags reachable from current commit, then sort by semver
             LAST_TAG=$(git tag --list 'v*' --merged HEAD --sort=-v:refname | head -n 1)
             if [[ -n "${LAST_TAG}" ]]; then
               BOOTSTRAP_SHA=$(git rev-list -n 1 "${LAST_TAG}")
+              echo "bootstrap_sha=${BOOTSTRAP_SHA}" >> "$GITHUB_OUTPUT"
               echo "Using bootstrap-sha from ${LAST_TAG}: ${BOOTSTRAP_SHA}"
             else
-              BOOTSTRAP_SHA=""
+              echo "bootstrap_sha=" >> "$GITHUB_OUTPUT"
               echo "No previous release tag found, not setting bootstrap-sha"
             fi
           else
-            STRATEGY="always-bump-patch"
-            BOOTSTRAP_SHA=""
+            echo "versioning_strategy=always-bump-patch" >> "$GITHUB_OUTPUT"
+            echo "bootstrap_sha=" >> "$GITHUB_OUTPUT"
             echo "Using always-bump-patch for release branch (all → patch bump)"
           fi
-
-          # Inject options into config file using jq (safe JSON manipulation)
-          # This is required because these options are not valid action inputs
-          if [[ -n "${BOOTSTRAP_SHA}" ]]; then
-            jq --arg strategy "${STRATEGY}" --arg sha "${BOOTSTRAP_SHA}" \
-              '. + {"versioning-strategy": $strategy, "bootstrap-sha": $sha}' \
-              release-please-config.json > release-please-config.json.tmp
-          else
-            jq --arg strategy "${STRATEGY}" \
-              '. + {"versioning-strategy": $strategy}' \
-              release-please-config.json > release-please-config.json.tmp
-          fi
-          mv release-please-config.json.tmp release-please-config.json
-
-          echo "Updated release-please-config.json:"
-          cat release-please-config.json
 
       - name: Run Release Please
         # v4
@@ -87,6 +73,10 @@ jobs:
           manifest-file: .release-please-manifest.json
           # Use current branch to support patch releases on release/* branches
           target-branch: ${{ github.ref_name }}
+          # Dynamic versioning strategy to prevent version collisions
+          versioning-strategy: ${{ steps.strategy.outputs.versioning_strategy }}
+          # TODO: bootstrap-sha is not a valid action input (CLI-only option)
+          # bootstrap-sha: ${{ steps.strategy.outputs.bootstrap_sha }}
 
       # Auto-merge SNAPSHOT bump PRs (they only update POM versions)
       # These PRs have the label "autorelease: snapshot" and are safe to auto-merge
@@ -187,8 +177,8 @@ jobs:
         # v5
         uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Build with Maven
         run: mvn -B package -DskipTests
@@ -405,8 +395,8 @@ jobs:
         # v5
         uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Download Build Artifacts
         # v4

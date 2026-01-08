@@ -25,10 +25,10 @@ jobs:
     steps:
       - name: Checkout
         # v6
+        # zizmor: ignore[artipacked] - persist-credentials must be true for backport action to push branches
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           fetch-depth: 0
-          # persist-credentials must be true for backport action to push branches
 
       - name: Backport Action
         # v3
