@@ -31,7 +31,7 @@ class HealthService(
             .observe<Map<String, Any>> {
                 logger.info("Executing health details check within observation span")
                 buildHealthDetails()
-            } ?: buildHealthDetails()
+            }
     }
 
     private fun buildHealthDetails(): Map<String, Any> =
