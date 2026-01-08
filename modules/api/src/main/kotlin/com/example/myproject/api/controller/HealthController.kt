@@ -23,8 +23,8 @@ import kotlin.random.Random
 @Tag(name = "Health", description = "Health check endpoints")
 class HealthController(
     private val healthService: HealthService,
-    @Value("\${spring.application.name}") private val appName: String,
-    @Value("\${project.version:unknown}") private val projectVersion: String,
+    @param:Value("\${spring.application.name}") private val appName: String,
+    @param:Value("\${project.version:unknown}") private val projectVersion: String,
 ) {
     private val logger = LoggerFactory.getLogger(HealthController::class.java)
 
