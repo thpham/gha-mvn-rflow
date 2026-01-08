@@ -80,6 +80,11 @@ deploy:
       github-packages:
         active: RELEASE
         url: https://maven.pkg.github.com/thpham/gha-mvn-rflow
+        # Disable Maven Central rules (sources/javadoc JARs not required for GitHub Packages)
+        applyMavenCentralRules: false
+        sourceJar: false
+        javadocJar: false
+        verifyPom: false
         stagingRepositories:
           - staging-deploy
         # Credentials via: JRELEASER_GITHUB_TOKEN
