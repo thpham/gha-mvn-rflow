@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/thpham/gha-mvn-rflow/compare/v1.10.0...v1.10.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* **common:** add APP_VENDOR constant for consistency ([#88](https://github.com/thpham/gha-mvn-rflow/issues/88)) ([#89](https://github.com/thpham/gha-mvn-rflow/issues/89)) ([624aeaa](https://github.com/thpham/gha-mvn-rflow/commit/624aeaae9e5c85ddcf58d79edd119562e8697ad1))
+
 ## [1.10.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.9.0...v1.10.0) (2026-01-08)
 
 
