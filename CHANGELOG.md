@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.6.0...v1.7.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* **ci:** prevent duplicate Docker builds and fix artifact handling ([0296945](https://github.com/thpham/gha-mvn-rflow/commit/02969451510b4d1cf46c20f7dce992d293d8b9eb))
+
 ## [1.6.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.5.0...v1.6.0) (2026-01-08)
 
 
