@@ -170,6 +170,11 @@ jobs:
       - name: Build with Maven
         run: mvn -B package -DskipTests
 
+      - name: Stage Maven Artifacts for JReleaser
+        run: |
+          mvn -B deploy -DskipTests \
+            -DaltDeploymentRepository=local::file:./staging-deploy
+
       - name: Upload Build Artifacts
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -177,6 +182,7 @@ jobs:
           name: release-artifacts
           path: |
             modules/api/target/*.jar
+            staging-deploy/
           retention-days: 1
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -390,7 +396,7 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: release-artifacts
-          path: modules/api/target/
+          # Download to root - contains modules/api/target/*.jar and staging-deploy/
 
       - name: Run JReleaser
         # v2

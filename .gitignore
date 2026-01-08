@@ -65,6 +65,7 @@ failsafe-reports/
 
 # JReleaser
 out/jreleaser/
+staging-deploy/
 
 # Docker
 .docker/

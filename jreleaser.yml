@@ -73,6 +73,8 @@ deploy:
       github-packages:
         active: RELEASE
         url: https://maven.pkg.github.com/thpham/gha-mvn-rflow
+        stagingRepositories:
+          - staging-deploy
         # Credentials via: JRELEASER_GITHUB_TOKEN
 
 # =============================================================================
