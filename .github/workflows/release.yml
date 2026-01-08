@@ -110,6 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write # Required to trigger workflow_dispatch on new branch
 
     steps:
       - name: Checkout
@@ -143,12 +144,14 @@ jobs:
               -f ref="refs/heads/${BRANCH_NAME}" \
               -f sha="${TAG_SHA}"
             echo "Successfully created branch ${BRANCH_NAME}"
-
-            # Trigger Release Please on the new branch to create SNAPSHOT bump PR
-            # This is needed because branch creation via API doesn't trigger push events
-            echo "Triggering Release workflow on ${BRANCH_NAME} for SNAPSHOT bump..."
-            gh workflow run release.yml --ref "${BRANCH_NAME}"
           fi
+
+          # Always trigger Release Please on the release branch to create SNAPSHOT bump PR
+          # This is needed because:
+          # 1. Branch creation via API doesn't trigger push events
+          # 2. If the branch already existed, it might not have a SNAPSHOT version yet
+          echo "Triggering Release workflow on ${BRANCH_NAME} for SNAPSHOT bump..."
+          gh workflow run release.yml --ref "${BRANCH_NAME}"
 
   build:
     name: Build Release Artifacts
