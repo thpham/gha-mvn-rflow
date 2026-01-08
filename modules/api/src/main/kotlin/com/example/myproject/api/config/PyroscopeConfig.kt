@@ -19,9 +19,9 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConditionalOnProperty(name = ["pyroscope.agent.enabled"], havingValue = "true")
 class PyroscopeConfig(
-    @Value("\${pyroscope.agent.application-name}") private val applicationName: String,
-    @Value("\${pyroscope.agent.server-address}") private val serverAddress: String,
-    @Value("\${DEPLOYMENT_ENV:local}") private val environment: String,
+    @param:Value("\${pyroscope.agent.application-name}") private val applicationName: String,
+    @param:Value("\${pyroscope.agent.server-address}") private val serverAddress: String,
+    @param:Value("\${DEPLOYMENT_ENV:local}") private val environment: String,
 ) {
     private val logger = LoggerFactory.getLogger(PyroscopeConfig::class.java)
 
