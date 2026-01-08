@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.5.0...v1.6.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* **release:** add Maven staging directory for JReleaser deployment ([5cd5696](https://github.com/thpham/gha-mvn-rflow/commit/5cd5696c002dc0335ed1d6e4619537f94b1fb729))
+* **release:** correct JReleaser config for Release Please integration ([28d26fb](https://github.com/thpham/gha-mvn-rflow/commit/28d26fb03453535921ed55d92aaa38646444f06d))
+
 ## [1.5.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.4.0...v1.5.0) (2026-01-08)
 
 
