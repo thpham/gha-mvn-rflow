@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.4.0...v1.5.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* **ci:** use GitHub API to create release branches ([6f27956](https://github.com/thpham/gha-mvn-rflow/commit/6f27956c89702c9b8c1aa15d7d090089c2f6ab2f))
+
 ## [1.4.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.3.0...v1.4.0) (2026-01-08)
 
 
