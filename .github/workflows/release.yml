@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
       - "release/**"
   workflow_dispatch:
 
@@ -38,15 +39,16 @@ jobs:
       # This prevents version collisions when fixes are backported
       - name: Determine Config File
         id: config
-        env:
-          REF_NAME: ${{ github.ref_name }}
         run: |
-          if [[ "${REF_NAME}" == "main" || "${REF_NAME}" == "master" ]]; then
+          if [[ "${GITHUB_REF_NAME}" == "main" || "${GITHUB_REF_NAME}" == "master" ]]; then
             echo "config_file=release-please-config.json" >> "$GITHUB_OUTPUT"
             echo "Using release-please-config.json (always-bump-minor)"
-          else
+          elif [[ "${GITHUB_REF_NAME}" == release/* ]]; then
             echo "config_file=release-please-config-patch.json" >> "$GITHUB_OUTPUT"
             echo "Using release-please-config-patch.json (always-bump-patch)"
+          else
+            echo "::error::Unexpected branch '${GITHUB_REF_NAME}' - expected main, master, or release/*"
+            exit 1
           fi
 
       - name: Run Release Please
@@ -95,16 +97,16 @@ jobs:
           echo "Version: ${MAJOR}.${MINOR}.${PATCH}"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Create Release Branch (only for releases from main)
+  # Create Release Branch (only for releases from main/master)
   # ─────────────────────────────────────────────────────────────────────────────
   # Creates release/X.Y branch from the release tag to enable backporting.
-  # Only runs for releases from main branch, not for patch releases.
+  # Only runs for releases from main/master branch, not for patch releases.
   # ─────────────────────────────────────────────────────────────────────────────
 
   create-release-branch:
     name: Create Release Branch
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
+    if: ${{ needs.release-please.outputs.release_created == 'true' && (github.ref_name == 'main' || github.ref_name == 'master') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -167,8 +169,8 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Build with Maven
-        run: mvn -B package -DskipTests
+      - name: Build and Test
+        run: mvn -B verify
 
       - name: Stage Maven Artifacts for JReleaser
         run: |
@@ -180,6 +182,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: release-artifacts
+          # Multi-path upload preserves directory structure in artifact
           path: |
             modules/api/target/*.jar
             staging-deploy/
@@ -229,7 +232,7 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: release-artifacts
-          path: modules/api/target/
+          # Download to workspace root - artifact contains modules/api/target/*.jar with directory structure
 
       - name: Setup Docker Buildx
         # v3
@@ -317,9 +320,6 @@ jobs:
         id: docker-tags
         env:
           VERSION: ${{ needs.release-please.outputs.version }}
-          REF_NAME: ${{ github.ref_name }}
-          REGISTRY: ${{ env.REGISTRY }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
         run: |
           MAJOR=$(echo "${VERSION}" | cut -d. -f1)
           MINOR=$(echo "${VERSION}" | cut -d. -f2)
@@ -329,12 +329,12 @@ jobs:
             echo "tags<<EOF"
             echo "type=raw,value=${VERSION}"
             echo "type=raw,value=${MAJOR}.${MINOR}"
-            # Only add 'latest' tag for releases from main branch
-            if [[ "${REF_NAME}" == "main" ]]; then
+            # Only add 'latest' tag for releases from main/master branch
+            if [[ "${GITHUB_REF_NAME}" == "main" || "${GITHUB_REF_NAME}" == "master" ]]; then
               echo "type=raw,value=latest"
-              echo "Adding 'latest' tag (release from main)" >&2
+              echo "Adding 'latest' tag (release from ${GITHUB_REF_NAME})" >&2
             else
-              echo "Skipping 'latest' tag (release from ${REF_NAME})" >&2
+              echo "Skipping 'latest' tag (release from ${GITHUB_REF_NAME})" >&2
             fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"

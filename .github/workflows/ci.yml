@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
       - 'release/**'
     paths:
       - 'pom.xml'
@@ -11,6 +12,7 @@ on:
   pull_request:
     branches:
       - main
+      - master
       - 'release/**'
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -88,7 +90,9 @@ jobs:
               echo "is_pr=true"
             } >> "$GITHUB_OUTPUT"
           else
-            PRIMARY_TAG="main-${TIMESTAMP}-${SHA_SHORT}"
+            # Use branch name for tag prefix (main or master)
+            BRANCH_NAME="${GITHUB_REF_NAME}"
+            PRIMARY_TAG="${BRANCH_NAME}-${TIMESTAMP}-${SHA_SHORT}"
             ROLLING_TAG="edge"
             {
               echo "primary_tag=${PRIMARY_TAG}"
@@ -117,6 +121,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: build-artifacts
+          # Single glob pattern - directory structure is stripped, only *.jar files in artifact
           path: modules/api/target/*.jar
           retention-days: 1
 
@@ -191,9 +196,12 @@ jobs:
   build-image:
     name: Build ${{ matrix.platform }}
     needs: [build, lint]
+    # Build Docker images for:
+    # - PRs with 'preview-image' label
+    # - Push to main/master, but NOT for release commits (those are handled by release.yml)
     if: |
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'preview-image')) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && !startsWith(github.event.head_commit.message, 'chore(main): release') && !startsWith(github.event.head_commit.message, 'chore(master): release'))
     strategy:
       fail-fast: false
       matrix:
@@ -225,6 +233,8 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: build-artifacts
+          # Download to modules/api/target/ since CI artifact only contains *.jar files
+          # (single glob pattern strips directory structure on upload)
           path: modules/api/target/
 
       - name: Setup Docker Buildx
