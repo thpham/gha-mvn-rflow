@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.7.0...v1.8.0) (2026-01-08)
+
+
+### Bug Fixes
+
+* **release:** disable sources/javadoc JAR verification for GitHub Packages ([da7a76f](https://github.com/thpham/gha-mvn-rflow/commit/da7a76fddab362a433c441d62e9a2ad38059107d))
+
 ## [1.7.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.6.0...v1.7.0) (2026-01-08)
 
 
