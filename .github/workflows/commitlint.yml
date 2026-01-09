@@ -7,27 +7,10 @@ on:
       - master
       - "release/**"
 
-permissions:
-  contents: read
-  pull-requests: read
+# Deny all permissions by default - reusable workflow defines what it needs
+permissions: {}
 
 jobs:
   commitlint:
-    name: Lint Commit Messages
-    runs-on: ubuntu-latest
-    # Skip for Dependabot PRs - their commit messages don't follow conventional commits
-    if: github.actor != 'dependabot[bot]'
-
-    steps:
-      - name: Checkout
-        # v6
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Lint Commits
-        # v6
-        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed
-        with:
-          configFile: commitlint.config.mjs
+    uses: thpham/actions/.github/workflows/commitlint.yml@main
+    # No secrets needed for commitlint
