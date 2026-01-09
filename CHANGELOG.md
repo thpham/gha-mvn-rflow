@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.14.0...v1.15.0) (2026-01-09)
+
+
+### Build System
+
+* **ci:** update to renamed reusable workflows ([f75d00f](https://github.com/thpham/gha-mvn-rflow/commit/f75d00f3fed0c784abda31dd0666640cd68b5578))
+
 ## [1.14.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.13.0...v1.14.0) (2026-01-09)
 
 
