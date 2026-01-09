@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.12.0...v1.13.0) (2026-01-09)
+
+
+### Bug Fixes
+
+* **ci:** correct cleanup-registry image-name to use repo name only ([8a0339b](https://github.com/thpham/gha-mvn-rflow/commit/8a0339bf551a853b9c661322835eb07a1835685b))
+
+
+### Code Refactoring
+
+* **ci:** migrate to reusable workflows with security hardening ([#99](https://github.com/thpham/gha-mvn-rflow/issues/99)) ([a3aac2d](https://github.com/thpham/gha-mvn-rflow/commit/a3aac2dc407006a737a9ca33c431506e1d2bcaed))
+
 ## [1.12.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.11.0...v1.12.0) (2026-01-09)
 
 
