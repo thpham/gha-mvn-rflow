@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.12.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.11.0...v1.12.0) (2026-01-09)
+
+
+### Performance Improvements
+
+* **ci:** simplify Maven cache key strategy ([#96](https://github.com/thpham/gha-mvn-rflow/issues/96)) ([f26a821](https://github.com/thpham/gha-mvn-rflow/commit/f26a82177358f34bd06fa37ca21c2cd52e915d01))
+
+
+### Documentation
+
+* **ci:** add comprehensive GitHub Actions workflows documentation ([7602602](https://github.com/thpham/gha-mvn-rflow/commit/7602602f7360099501afe77f38798006c6766525))
+
 ## [1.11.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.10.0...v1.11.0) (2026-01-08)
 
 
