@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/thpham/gha-mvn-rflow/compare/v1.13.0...v1.13.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* **common:** add missing period to kdoc comment ([#104](https://github.com/thpham/gha-mvn-rflow/issues/104)) ([#105](https://github.com/thpham/gha-mvn-rflow/issues/105)) ([bd04e89](https://github.com/thpham/gha-mvn-rflow/commit/bd04e8964ce590a73bf3d19f331d05ff4619bcda))
+
 ## [1.13.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.12.0...v1.13.0) (2026-01-09)
 
 
