@@ -8,8 +8,12 @@ on:
       - "release/**"
   workflow_dispatch:
 
-# Deny all permissions by default - reusable workflow defines what it needs
-permissions: {}
+# Permissions required by the reusable workflow
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  actions: write
 
 jobs:
   release:

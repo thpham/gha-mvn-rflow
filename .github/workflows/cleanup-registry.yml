@@ -7,8 +7,10 @@ on:
     - cron: "0 3 * * *"
   workflow_dispatch:
 
-# Deny all permissions by default - reusable workflow defines what it needs
-permissions: {}
+# Permissions required by the reusable workflow
+permissions:
+  packages: write
+  pull-requests: read
 
 jobs:
   cleanup:

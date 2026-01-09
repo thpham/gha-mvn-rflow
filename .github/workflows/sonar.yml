@@ -22,8 +22,9 @@ concurrency:
   group: sonar-${{ github.ref }}
   cancel-in-progress: true
 
-# Deny all permissions by default - reusable workflow defines what it needs
-permissions: {}
+# Permissions required by the reusable workflow
+permissions:
+  contents: read
 
 jobs:
   sonar:
