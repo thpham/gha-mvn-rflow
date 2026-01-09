@@ -1,141 +1,20 @@
 name: Cleanup Container Registry
 
 on:
-  # Immediate cleanup when PR is closed (merged or declined)
   pull_request:
     types: [closed]
-  # Scheduled cleanup as safety net
   schedule:
-    - cron: "0 3 * * *" # Daily at 3 AM UTC
+    - cron: "0 3 * * *"
   workflow_dispatch:
 
-env:
-  IMAGE_NAME: myproject-api
-
-# ─────────────────────────────────────────────────────────────────────────────
-# GHCR Cleanup Strategy
-# ─────────────────────────────────────────────────────────────────────────────
-# Uses dataaxiom/ghcr-cleanup-action which:
-# - Properly handles multi-architecture images (preserves manifest integrity)
-# - Supports wildcard and regex patterns for flexible tag matching
-# - Handles referrers/attestations and cosign signatures
-#
-# Our tagging strategy creates TWO tags per image:
-# - Push to main: main-{timestamp}-{sha} + edge
-# - Pull request: pr-{N}-{timestamp}-{sha} + pr-{N}
-# ─────────────────────────────────────────────────────────────────────────────
+# Permissions required by the reusable workflow
+permissions:
+  packages: write
+  pull-requests: read
 
 jobs:
-  # Cleanup specific PR images when PR is closed
-  cleanup-pr:
-    name: Cleanup PR Images
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    concurrency:
-      group: cleanup-images
-    permissions:
-      packages: write
-
-    steps:
-      - name: Check if PR images exist
-        id: check-images
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-        run: |
-          # Check if any images with pr-{N} tag pattern exist
-          RESPONSE=$(gh api \
-            -H "Accept: application/vnd.github+json" \
-            "/users/${REPO_OWNER}/packages/container/${REPO_NAME}%2F${{ env.IMAGE_NAME }}/versions" \
-            --paginate 2>/dev/null || echo "[]")
-
-          # Check if any tags match the PR pattern
-          if echo "$RESPONSE" | jq -e --arg pr "pr-${PR_NUMBER}" '.[] | select(.metadata.container.tags[] | startswith($pr))' > /dev/null 2>&1; then
-            echo "found=true" >> "$GITHUB_OUTPUT"
-            echo "Found images for PR #${PR_NUMBER}"
-          else
-            echo "found=false" >> "$GITHUB_OUTPUT"
-            echo "No images found for PR #${PR_NUMBER} - skipping cleanup"
-          fi
-
-      - name: Delete PR images
-        if: steps.check-images.outputs.found == 'true'
-        # v1.0.16 - Handles multi-arch images safely
-        uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          package: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
-          # For GHE Cloud or data residency, change these URLs accordingly
-          # registry-url: https://ghcr.io
-          # github-api-url: https://api.github.com
-          # Match both rolling tag (pr-N) and timestamped tags (pr-N-*)
-          delete-tags: pr-${{ github.event.pull_request.number }},pr-${{ github.event.pull_request.number }}-*
-
-  # Scheduled bulk cleanup
-  cleanup-scheduled:
-    name: Scheduled Cleanup
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    concurrency:
-      group: cleanup-images
-    permissions:
-      packages: write
-
-    steps:
-      # ─────────────────────────────────────────────────────────────────────────
-      # Build exclude pattern for open PRs
-      # ─────────────────────────────────────────────────────────────────────────
-      - name: Get open PR numbers
-        id: open-prs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          # Fetch all open PR numbers (use --repo since no git checkout)
-          OPEN_PRS=$(gh pr list --repo "$REPO" --state open --json number --jq '.[].number' | tr '\n' '|' | sed 's/|$//')
-
-          if [[ -n "$OPEN_PRS" ]]; then
-            # Build regex to exclude open PR tags: ^pr-(1|2|3)(-.*)?$
-            echo "exclude_pattern=^(edge|v?[0-9]+\.[0-9]+\.[0-9]+.*|pr-(${OPEN_PRS})(-.*)?)$" >> "$GITHUB_OUTPUT"
-            echo "Open PRs to preserve: ${OPEN_PRS//|/, }"
-          else
-            # No open PRs, just exclude edge and semver tags
-            echo "exclude_pattern=^(edge|v?[0-9]+\.[0-9]+\.[0-9]+.*)$" >> "$GITHUB_OUTPUT"
-            echo "No open PRs found"
-          fi
-
-      # ─────────────────────────────────────────────────────────────────────────
-      # Combined Cleanup
-      # ─────────────────────────────────────────────────────────────────────────
-      # Single action call that handles all cleanup in one pass:
-      # - Deletes old main-* timestamped tags (keeps 5 newest)
-      # - Deletes orphaned PR images (closed PRs)
-      # - Cleans up untagged manifests (keeps 4 for in-progress builds)
-      #
-      # Preserves:
-      # - 'edge' rolling tag (latest main build)
-      # - Semantic version tags (v1.2.3, etc.)
-      # - Open PR tags (pr-N and pr-N-*)
-      # - Multi-arch image integrity (children of tagged manifests)
-      # ─────────────────────────────────────────────────────────────────────────
-      - name: Cleanup container images
-        # v1.0.16 - Handles multi-arch images safely
-        uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          package: ${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}
-          # For GHE Cloud or data residency, change these URLs accordingly
-          # registry-url: https://ghcr.io
-          # github-api-url: https://api.github.com
-          # Match main-* and pr-* tags for cleanup
-          delete-tags: ^(main-[0-9]{14}-[a-f0-9]+|pr-[0-9]+(-.*)?)$
-          use-regex: true
-          # Preserve edge, semver tags, and open PR tags
-          exclude-tags: ${{ steps.open-prs.outputs.exclude_pattern }}
-          # Keep 5 most recent tagged images matching delete-tags pattern
-          keep-n-tagged: 5
-          delete-ghost-images: true
-          delete-partial-images: true
-          delete-orphaned-images: true
+  cleanup:
+    uses: thpham/actions/.github/workflows/cleanup-registry.yml@main
+    with:
+      image-name: ${{ github.repository }}/myproject-api
+    # GITHUB_TOKEN is automatically available to reusable workflows

@@ -2,51 +2,33 @@ name: Lint Workflows
 
 on:
   push:
+    branches:
+      - main
+      - master
+      - "release/**"
     paths:
-      - '.github/workflows/**'
-      - '.github/actionlint.yaml'
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
   pull_request:
+    branches:
+      - main
+      - master
+      - "release/**"
     paths:
-      - '.github/workflows/**'
-      - '.github/actionlint.yaml'
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
 
-# Cancel in-progress runs for the same branch
 concurrency:
   group: lint-workflows-${{ github.ref }}
   cancel-in-progress: true
 
+# Permissions required by the reusable workflow
 permissions:
   contents: read
+  actions: read
+  security-events: write
 
 jobs:
-  actionlint:
-    name: actionlint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        # v6
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          persist-credentials: false
-
-      - name: Run actionlint
-        # v1.7.10
-        uses: rhysd/actionlint@0933c147c9d6587653d45fdcb4c497c57a65f9af
-
-  zizmor:
-    name: zizmor (Security)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-      security-events: write
-    steps:
-      - name: Checkout
-        # v6
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          persist-credentials: false
-
-      - name: Run zizmor
-        # v0.3.0 - Uploads to GitHub Advanced Security automatically
-        uses: zizmorcore/zizmor-action@e639db99335bc9038abc0e066dfcd72e23d26fb4
+  lint:
+    uses: thpham/actions/.github/workflows/lint-workflows.yml@main
+    # No secrets needed for linting
