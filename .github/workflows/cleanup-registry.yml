@@ -16,5 +16,5 @@ jobs:
   cleanup:
     uses: thpham/actions/.github/workflows/cleanup-registry.yml@main
     with:
-      image-name: ${{ github.repository }}/myproject-api
+      image-name: ${{ github.event.repository.name }}/myproject-api
     # GITHUB_TOKEN is automatically available to reusable workflows
