@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   ci:
-    uses: thpham/actions/.github/workflows/ci.yml@main
+    uses: thpham/actions/.github/workflows/kotlin-mvn-ci.yml@main
     with:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api

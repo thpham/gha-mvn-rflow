@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   release:
-    uses: thpham/actions/.github/workflows/release.yml@main
+    uses: thpham/actions/.github/workflows/kotlin-mvn-release.yml@main
     with:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
