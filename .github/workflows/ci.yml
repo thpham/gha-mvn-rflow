@@ -59,11 +59,11 @@ jobs:
 
       - name: Restore Maven cache
         # v4 - Read-only cache restore to prevent cache poisoning attacks
+        # Maven artifacts are immutable, so no hash-based invalidation needed
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven
 
       - name: Extract version from POM
         id: version
@@ -127,11 +127,12 @@ jobs:
 
       - name: Save Maven cache
         # v4 - Only save cache on push events (not PRs) to prevent cache poisoning
+        # Maven artifacts are immutable, so no hash-based invalidation needed
         if: github.event_name == 'push'
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven
 
   lint:
     name: Lint & Format Check
@@ -156,11 +157,11 @@ jobs:
 
       - name: Restore Maven cache
         # v4 - Read-only cache restore to prevent cache poisoning attacks
+        # Maven artifacts are immutable, so no hash-based invalidation needed
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven
 
       - name: Check Formatting
         id: spotless
