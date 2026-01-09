@@ -21,6 +21,7 @@ jobs:
     with:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
+      artifact-path: modules/api/target/api-*.jar
     # GITHUB_TOKEN is automatically available to reusable workflows
     # Optional secrets (uncomment if needed):
     # secrets:
