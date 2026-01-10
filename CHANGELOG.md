@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.15.0...v1.16.0) (2026-01-10)
+
+
+### Code Refactoring
+
+* **ci:** rename cleanup-registry to cleanup-ghcr ([ecc1821](https://github.com/thpham/gha-mvn-rflow/commit/ecc1821d62d922a87d23f50abd01a781dc07a33c))
+
 ## [1.15.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.14.0...v1.15.0) (2026-01-09)
 
 
