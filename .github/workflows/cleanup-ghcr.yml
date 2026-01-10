@@ -1,4 +1,4 @@
-name: Cleanup Container Registry
+name: Cleanup GHCR Images
 
 on:
   pull_request:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   cleanup:
-    uses: thpham/actions/.github/workflows/cleanup-registry.yml@main
+    uses: thpham/actions/.github/workflows/cleanup-ghcr.yml@main
     with:
       image-name: ${{ github.event.repository.name }}/myproject-api
     # GITHUB_TOKEN is automatically available to reusable workflows
