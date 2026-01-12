@@ -14,6 +14,8 @@ permissions:
   packages: write
   pull-requests: write
   actions: write
+  security-events: write # For SARIF upload
+  id-token: write # For OIDC signing and SBOM attestation
 
 jobs:
   release:
@@ -22,6 +24,11 @@ jobs:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
       artifact-path: modules/api/target/api-*.jar
+      # Security features (all enabled by default for releases):
+      # - security-scan-enabled: true (fails on CRITICAL/HIGH)
+      # - sign-images: true (keyless OIDC signing)
+      # - sbom-enabled: true (CycloneDX format)
+      # - sbom-attestation: true (attested to each arch digest)
     # GITHUB_TOKEN is automatically available to reusable workflows
     # Optional secrets (uncomment if needed):
     # secrets:
