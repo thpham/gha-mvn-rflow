@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.16.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.15.0...v1.16.0) (2026-01-12)
+
+
+### Code Refactoring
+
+* **ci:** rename cleanup-registry to cleanup-ghcr ([ecc1821](https://github.com/thpham/gha-mvn-rflow/commit/ecc1821d62d922a87d23f50abd01a781dc07a33c))
+
+
+### Build System
+
+* **deps:** bump io.opentelemetry:opentelemetry-bom ([#116](https://github.com/thpham/gha-mvn-rflow/issues/116)) ([c5581b8](https://github.com/thpham/gha-mvn-rflow/commit/c5581b88edb972e5afd4030899e0b72d8805306d))
+
 ## [1.15.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.14.0...v1.15.0) (2026-01-09)
 
 
