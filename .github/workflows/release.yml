@@ -14,20 +14,21 @@ permissions:
   packages: write
   pull-requests: write
   actions: write
-  security-events: write  # For SARIF upload
-  id-token: write         # For OIDC signing and SBOM attestation
+  security-events: write # For SARIF upload
+  id-token: write # For OIDC signing and SBOM attestation
 
 jobs:
   release:
-    uses: thpham/actions/.github/workflows/kotlin-mvn-release.yml@feat/composite-action-docker-build
+    uses: thpham/actions/.github/workflows/kotlin-mvn-release.yml@main
     with:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
       artifact-path: modules/api/target/api-*.jar
-      # Security features (all enabled by default for releases)
-      sign-images: true
-      sbom-enabled: true
-      sbom-attestation: true
+      # Security features (all enabled by default for releases):
+      # - security-scan-enabled: true (fails on CRITICAL/HIGH)
+      # - sign-images: true (keyless OIDC signing)
+      # - sbom-enabled: true (CycloneDX format)
+      # - sbom-attestation: true (attested to each arch digest)
     # GITHUB_TOKEN is automatically available to reusable workflows
     # Optional secrets (uncomment if needed):
     # secrets:

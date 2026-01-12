@@ -34,12 +34,11 @@ permissions:
 
 jobs:
   ci:
-    uses: thpham/actions/.github/workflows/kotlin-mvn-ci.yml@feat/composite-action-docker-build
+    uses: thpham/actions/.github/workflows/kotlin-mvn-ci.yml@main
     with:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
       artifact-path: modules/api/target/api-*.jar
-      # GITHUB_TOKEN is automatically available to reusable workflows
-      # Test security features:
-      security-scan-enabled: true
-      sign-images: true  # Test OIDC keyless signing
+      # Security features (defaults):
+      # - security-scan-enabled: true (warn-only, no build failure)
+      # - sign-images: false (disabled for CI preview images)
