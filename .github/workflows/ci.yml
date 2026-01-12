@@ -29,6 +29,8 @@ permissions:
   packages: write
   pull-requests: write
   actions: write
+  security-events: write # Add this for SARIF upload
+  id-token: write # Add this for OIDC signing
 
 jobs:
   ci:
@@ -37,4 +39,6 @@ jobs:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
       artifact-path: modules/api/target/api-*.jar
-    # GITHUB_TOKEN is automatically available to reusable workflows
+      # Security features (defaults):
+      # - security-scan-enabled: true (warn-only, no build failure)
+      # - sign-images: false (disabled for CI preview images)
