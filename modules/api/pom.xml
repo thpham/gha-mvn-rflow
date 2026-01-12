@@ -14,6 +14,7 @@
 
   <name>API Module</name>
   <description>REST API and Spring Boot application entry point</description>
+  <!-- Test: trigger CI workflow for security features validation -->
 
   <dependencies>
     <!-- Internal modules -->
