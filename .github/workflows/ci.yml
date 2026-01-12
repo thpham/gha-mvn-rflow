@@ -42,4 +42,4 @@ jobs:
       # GITHUB_TOKEN is automatically available to reusable workflows
       # Test security features:
       security-scan-enabled: true
-      # sign-images: true  # Uncomment to test signing
+      sign-images: true  # Test OIDC keyless signing
