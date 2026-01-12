@@ -29,12 +29,17 @@ permissions:
   packages: write
   pull-requests: write
   actions: write
+  security-events: write # Add this for SARIF upload
+  id-token: write # Add this for OIDC signing
 
 jobs:
   ci:
-    uses: thpham/actions/.github/workflows/kotlin-mvn-ci.yml@main
+    uses: thpham/actions/.github/workflows/kotlin-mvn-ci.yml@feat/composite-action-docker-build
     with:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
       artifact-path: modules/api/target/api-*.jar
-    # GITHUB_TOKEN is automatically available to reusable workflows
+      # GITHUB_TOKEN is automatically available to reusable workflows
+      # Test security features:
+      security-scan-enabled: true
+      # sign-images: true  # Uncomment to test signing

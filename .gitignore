@@ -57,6 +57,7 @@ application-local.yml
 application-local.properties
 .direnv/
 .claude/
+.serena/
 
 # Test outputs
 test-output/
