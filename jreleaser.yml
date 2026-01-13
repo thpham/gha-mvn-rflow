@@ -1,5 +1,6 @@
 # JReleaser Configuration
-# Handles: artifact distribution, Docker publishing, announcements, signing
+# Handles: native package generation (deb/rpm), release asset upload
+# Uses jpackage assembler for consistent deb and rpm package generation
 
 project:
   name: myproject
@@ -55,13 +56,13 @@ release:
       enabled: false
 
     # Release name template
-    releaseName: 'v{{projectVersion}}'
+    releaseName: "v{{projectVersion}}"
 
 # =============================================================================
 # Signing Configuration (GPG) - Optional
 # =============================================================================
 signing:
-  active: NEVER  # Change to ALWAYS when GPG is configured
+  active: NEVER # Change to ALWAYS when GPG is configured
   pgp:
     armored: true
     mode: MEMORY
@@ -71,7 +72,7 @@ signing:
   # JRELEASER_GPG_PUBLIC_KEY
 
 # =============================================================================
-# Distribution - Maven Artifacts
+# Distribution - Maven Artifacts (GitHub Packages)
 # =============================================================================
 deploy:
   maven:
@@ -88,35 +89,13 @@ deploy:
         stagingRepositories:
           - staging-deploy
         # Credentials via: JRELEASER_GITHUB_TOKEN
-
 # =============================================================================
-# SBOM (Software Bill of Materials) Generation
+# NO files section - fat JAR removed in favor of native packages
 # =============================================================================
-catalog:
-  sbom:
-    # CycloneDX SBOM generation (industry standard)
-    cyclonedx:
-      active: ALWAYS
-      # Include distribution artifacts in SBOM
-      distributions: true
-      # Include project files in SBOM
-      files: true
-      # Output formats
-      formats:
-        - JSON
-        - XML
-      # Archive all SBOMs together
-      pack:
-        enabled: true
-        name: '{{projectName}}-{{projectVersion}}-sbom'
-
-# =============================================================================
-# Files to include in release
-# =============================================================================
-files:
-  artifacts:
-    - path: modules/api/target/api-{{projectVersion}}.jar
-      transform: 'api-{{projectVersion}}.jar'
+# files:
+#   artifacts:
+#     - path: modules/api/target/api-{{projectVersion}}.jar
+#       transform: 'api-{{projectVersion}}.jar'
 
 # =============================================================================
 # Announcements - Optional

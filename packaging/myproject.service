@@ -1,0 +1,49 @@
+[Unit]
+Description=MyProject Spring Boot Application
+Documentation=https://github.com/thpham/gha-mvn-rflow
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=myproject
+Group=myproject
+WorkingDirectory=/opt/myproject
+
+# Main execution - uses environment file for JAVA_OPTS
+ExecStart=/bin/bash -c 'exec /usr/bin/java $JAVA_OPTS -jar /opt/myproject/myproject.jar $APP_OPTS'
+
+# Graceful shutdown
+ExecStop=/bin/kill -TERM $MAINPID
+TimeoutStopSec=30
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=myproject
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+# Allow writes to specific directories
+ReadWritePaths=/var/log/myproject
+ReadWritePaths=/var/lib/myproject
+
+# Environment files (both Debian and RHEL conventions)
+EnvironmentFile=-/etc/default/myproject
+EnvironmentFile=-/etc/sysconfig/myproject
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
+# nfpm.yaml - Package configuration for both deb and rpm
+# https://nfpm.goreleaser.com/docs/configuration/
+#
+# Build packages with:
+#   export VERSION=1.0.0
+#   nfpm package --config nfpm.yaml --packager deb --target dist/
+#   nfpm package --config nfpm.yaml --packager rpm --target dist/
+
+name: myproject
+arch: all # Architecture-independent (Java bytecode runs on any JVM)
+platform: linux
+version: "${VERSION}" # Set via environment variable
+release: 1
+maintainer: "Thomas Pham <thomas@example.com>"
+description: "MyProject Spring Boot Application"
+vendor: "thpham"
+homepage: "https://github.com/thpham/gha-mvn-rflow"
+license: "Apache-2.0"
+
+# Top-level section and priority (for deb)
+section: java
+priority: optional
+
+# Package contents
+contents:
+  # Main JAR file
+  - src: modules/api/target/api-${VERSION}.jar
+    dst: /opt/myproject/myproject.jar
+    file_info:
+      mode: 0640
+      owner: myproject
+      group: myproject
+
+  # Systemd service file
+  - src: packaging/myproject.service
+    dst: /lib/systemd/system/myproject.service
+    file_info:
+      mode: 0644
+
+  # Environment defaults
+  - src: packaging/myproject.conf
+    dst: /etc/default/myproject
+    type: config|noreplace
+    file_info:
+      mode: 0640
+      owner: root
+      group: myproject
+
+  # Application config
+  - src: packaging/application.yml
+    dst: /etc/myproject/application.yml
+    type: config|noreplace
+    file_info:
+      mode: 0640
+      owner: myproject
+      group: myproject
+
+  # Create empty directories
+  - dst: /var/log/myproject
+    type: dir
+    file_info:
+      mode: 0750
+      owner: myproject
+      group: myproject
+
+  - dst: /var/lib/myproject
+    type: dir
+    file_info:
+      mode: 0750
+      owner: myproject
+      group: myproject
+
+  - dst: /opt/myproject
+    type: dir
+    file_info:
+      mode: 0750
+      owner: myproject
+      group: myproject
+
+# Scripts (same for both deb and rpm)
+scripts:
+  preinstall: packaging/scripts/preinstall.sh
+  postinstall: packaging/scripts/postinstall.sh
+  preremove: packaging/scripts/preremove.sh
+  postremove: packaging/scripts/postremove.sh
+
+# Packager-specific overrides
+overrides:
+  deb:
+    # Dependencies for Debian/Ubuntu
+    depends:
+      - default-jre-headless (>= 17) | openjdk-17-jre-headless | openjdk-21-jre-headless
+  rpm:
+    # Dependencies for RHEL/CentOS/Fedora/Rocky
+    # No hard dependency - Java 17+ must be installed separately
+    # Use recommends for soft dependency (won't block install)
+    recommends:
+      - java-17-openjdk-headless
+      - java-21-openjdk-headless
+      - java-25-openjdk-headless

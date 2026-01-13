@@ -1,0 +1,23 @@
+# Default application configuration for packaged deployment
+# Override by editing /etc/default/myproject or this file
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: myproject
+
+logging:
+  level:
+    root: INFO
+    com.example.myproject: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized

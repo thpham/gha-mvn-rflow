@@ -24,6 +24,9 @@ jobs:
       docker-image-name: ${{ github.repository }}/myproject-api
       docker-context: modules/api
       artifact-path: modules/api/target/api-*.jar
+      # Native packages (deb/rpm)
+      build-packages: true
+      nfpm-config: nfpm.yaml
       # Security features (all enabled by default for releases):
       # - security-scan-enabled: true (fails on CRITICAL/HIGH)
       # - sign-images: true (keyless OIDC signing)
