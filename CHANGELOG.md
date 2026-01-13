@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.16.0...v1.17.0) (2026-01-13)
+
+
+### Features
+
+* **packaging:** add nfpm configuration for deb/rpm packages ([ae29208](https://github.com/thpham/gha-mvn-rflow/commit/ae29208bcae39511abe8e79d505102060e34767e))
+
 ## [1.16.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.15.0...v1.16.0) (2026-01-12)
 
 
