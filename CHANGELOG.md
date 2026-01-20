@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.18.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.17.0...v1.18.0) (2026-01-20)
+
+
+### Bug Fixes
+
+* create a dummy fix for demo purpose, to backport ([#126](https://github.com/thpham/gha-mvn-rflow/issues/126)) ([3b220dd](https://github.com/thpham/gha-mvn-rflow/commit/3b220dd2decc9d95abf873c6e4db16acc7c9f045))
+
+
+### Build System
+
+* **deps:** bump io.opentelemetry:opentelemetry-bom ([#124](https://github.com/thpham/gha-mvn-rflow/issues/124)) ([d8c3fd7](https://github.com/thpham/gha-mvn-rflow/commit/d8c3fd7134f2320cfb084df18dff048d3d72fbbb))
+
 ## [1.17.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.16.0...v1.17.0) (2026-01-13)
 
 
