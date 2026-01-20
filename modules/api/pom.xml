@@ -54,7 +54,7 @@
     <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-      <version>${opentelemetry-instrumentation.version}-alpha</version>
+      <version>${opentelemetry-instrumentation.version}</version>
     </dependency>
 
     <!-- Pyroscope Java SDK for continuous profiling -->
