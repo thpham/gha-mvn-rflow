@@ -12,4 +12,5 @@ object Constants {
 
     /** Build metadata placeholder - replaced at build time. */
     const val BUILD_VERSION = "development"
+    const val TEST_VERSION = "v1"
 }
