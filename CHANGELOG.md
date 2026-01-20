@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.1](https://github.com/thpham/gha-mvn-rflow/compare/v1.17.0...v1.17.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* create a dummy fix for demo purpose, to backport ([#126](https://github.com/thpham/gha-mvn-rflow/issues/126)) ([#127](https://github.com/thpham/gha-mvn-rflow/issues/127)) ([b9ad7b0](https://github.com/thpham/gha-mvn-rflow/commit/b9ad7b0733b6326f12e4f604621e80db86f6f825))
+
 ## [1.17.0](https://github.com/thpham/gha-mvn-rflow/compare/v1.16.0...v1.17.0) (2026-01-13)
 
 
