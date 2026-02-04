@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.2](https://github.com/thpham/gha-mvn-rflow/compare/v1.17.1...v1.17.2) (2026-02-04)
+
+
+### Bug Fixes
+
+* missing const affecting feature xx ([#133](https://github.com/thpham/gha-mvn-rflow/issues/133)) ([#134](https://github.com/thpham/gha-mvn-rflow/issues/134)) ([4997efd](https://github.com/thpham/gha-mvn-rflow/commit/4997efdf7b96905c87f571ac926aacf33c207e11))
+
 ## [1.17.1](https://github.com/thpham/gha-mvn-rflow/compare/v1.17.0...v1.17.1) (2026-01-20)
 
 
